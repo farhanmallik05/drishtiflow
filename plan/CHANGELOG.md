@@ -6,6 +6,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.3] - 2026-11-04 (Roadmap Milestone Restructuring)
+
+### Changed
+- **Planning Roadmap Restructuring (`plan/ROADMAP.md` & `plan/README.md`)**:
+  - Reorganized the build execution structure from a day-based sequence ("10-Day Build Sequence") into a formal milestone-based execution framework (**Milestones 1 through 10** under Milestone R0 Prototype).
+  - Aligned each milestone (M1 through M10) with verified exit gates, explicit deliverables, and completed validation evidence.
+  - Updated planning center references in `plan/README.md` to reflect the milestone-based execution model.
+
+---
+
+## [0.1.0-alpha.2] - 2026-11-04 (Remediation & Integration Polish)
+
+### Fixed
+- **Policy Engine Rate Limiting (`services/api/app/services/policy.py`)**:
+  - Scoped the hourly rate limit to `camera_id` by joining the `actions` table with `incidents` (`WHERE i.camera_id = ? AND a.status in ('sent', 'delivered') AND a.created_at >= ?`).
+  - Replaced SQLite string literal `datetime('now', '-1 hour')` with a UTC ISO-8601 parameter computed via `(datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()`, preventing character-set comparison mismatches.
+- **Workflow Versioning & Activation Validation (`services/api/app/routers/workflows.py`)**:
+  - Implemented `POST /api/v1/workflows/{id}/versions` (PRD §9) to create immutable version snapshots with automatic version incrementing.
+  - Added server-side schema pre-validation in `POST /api/v1/workflows/{id}/activate` (PRD §6.2 FR-W-08), ensuring workflows have valid definitions, triggers, and at least one enabled action before activation.
+- **Frontend ESLint Configuration (`apps/web/.eslintrc.json`)**:
+  - Configured Next.js ESLint configuration extending `next/core-web-vitals` with compatibility for ESLint 8.
+  - Achieved `✔ No ESLint warnings or errors` on `npm run lint --workspace=apps/web`.
+- **API Routing Resilience & Frontend Integration (`apps/web/src/components/`)**:
+  - Replaced hardcoded `http://localhost:8000` URLs across `RuleBuilder.tsx`, `WorkflowGraph.tsx`, `CameraPreview.tsx`, `ActionTester.tsx`, and `IncidentFeed.tsx` with environment-configurable `/api/v1/...` relative routes leveraging Next.js rewrites.
+  - In `RuleBuilder.tsx`, persisted compiled workflows to backend via `POST /api/v1/workflows` and updated state with the saved ID.
+  - In `WorkflowGraph.tsx`, integrated live activation and pausing via `POST /api/v1/workflows/{id}/activate` and `/pause` with user-facing validation error banners.
+  - In `CameraPreview.tsx`, dynamically generated and attached base64 keyframe evidence snapshots to candidate event envelopes for both webcam and simulation modes.
+  - In `IncidentFeed.tsx`, rendered keyframe evidence image thumbnails for incident cards possessing base64 snapshots or evidence URLs.
+- **Test Isolation & Determinism (`services/api/tests/test_e2e_pipeline.py`)**:
+  - Added workflow versioning snapshot verification assertions (`assert version_res.json()["version"] == 2`).
+  - Added teardown cleanup fixture to remove test incidents, actions, feedback, zones, cameras, and workflows, ensuring 100% deterministic test execution on repeated runs.
+
+### Verified
+- `pytest services/api/tests/ -v`: 8/8 passed in 4.62s.
+- `pytest services/edge-agent/tests/ -v`: 4/4 passed in 0.29s.
+- `npm run lint --workspace=apps/web`: 0 errors, 0 warnings.
+- `npm run build --workspace=apps/web`: 0 errors, 102 kB bundle size.
+
+---
+
 ## [0.1.0-alpha.1] - 2026-11-04 (Milestone R0 Complete)
 
 ### Added

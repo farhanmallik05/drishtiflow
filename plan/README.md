@@ -1,7 +1,7 @@
 # DrishtiFlow (दृष्टि-फ़्लो) Planning Center
 **Project:** DrishtiFlow — Event-Aware Vision Intelligence for Bharat Sites  
 **Event:** Build with Bharat 5.0  
-**Status:** Phase 0 Active (Planning & Architecture Initialization)  
+**Status:** Milestone R0 Complete (Hackathon Prototype Verified)  
 **Governing PRD:** [DrishtiFlow_Enhanced_PRD_v3_EMPTY.md](file:///d:/hackathon/Build%20with%20Bharat/DrishtiFlow_Enhanced_PRD_v3_EMPTY.md)  
 **Protocol Rule:** [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLAN_RULE.md)
 
@@ -16,7 +16,7 @@ plan/
 ├── PLAN_RULE.md         # Mandatory protocol governing every change
 ├── README.md            # Planning center directory index & guidelines (this file)
 ├── STATE.md             # Real-time state machine: current phase, health, blockers
-├── ROADMAP.md           # 10-day build sequence, milestones R0-R4, release gates
+├── ROADMAP.md           # Milestone execution sequence, milestones R0-R4, release gates
 ├── ARCHITECTURE.md      # Detailed system architecture, schemas, edge & cloud data flows
 ├── TASKS.md             # Work Breakdown Structure (WBS) with owners and statuses
 ├── STANDARDS.md         # Definition of Done, testing gates, security & privacy rules
