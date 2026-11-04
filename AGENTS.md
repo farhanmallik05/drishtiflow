@@ -40,3 +40,4 @@ Refer to [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLA
 - Never claim 100% accuracy, medical safety, or autonomous emergency dispatch.
 - Context verification failures must degrade safely to `uncertain` or `processing_failed`, never silently suppressed.
 - High-consequence actions must always be governed by deterministic policy with idempotency keys and rate limits.
+

@@ -61,3 +61,4 @@ plan/
    - Update `plan/STATE.md` with current progress.
    - Log entry in `plan/CHANGELOG.md`.
    - Update `plan/ARCHITECTURE.md` if any schemas or APIs changed.
+

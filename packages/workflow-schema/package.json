@@ -1,0 +1,17 @@
+{
+  "name": "@drishtiflow/workflow-schema",
+  "version": "1.0.0",
+  "description": "Shared JSON Schema and TypeScript types for DrishtiFlow Workflows",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -31,3 +31,4 @@ Every agent, assistant, and engineer working in this workspace **MUST** strictly
 - **Monorepo Blueprint:** `apps/web` (Next.js + React Flow), `services/api` (FastAPI + Pydantic), `services/edge-agent`, `packages/workflow-schema`, `packages/shared-types`.
 
 *Refer to [plan/STANDARDS.md](file:///d:/hackathon/Build%20with%20Bharat/plan/STANDARDS.md) for full coding, security, and quality gates.*
+

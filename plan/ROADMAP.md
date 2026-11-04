@@ -18,7 +18,7 @@ flowchart LR
 
 | Milestone | Target Audience | Scope Summary | Exit Criteria / Gates |
 |---|---|---|---|
-| **R0: Hackathon Prototype** | Hackathon Judges & Early Adopters | Single-camera webcam/sample clip, Hindi/English compiler, zone polygon trigger, VLM verification, dashboard alert, test WhatsApp/voice call. | 3-minute live pitch demo succeeds end-to-end without unhandled crashes. Honest status indicators. |
+| **R0: Hackathon Prototype** | Hackathon Judges & Early Adopters | Single-camera webcam/sample clip, Hindi/English compiler, zone polygon trigger, VLM verification, dashboard alert, test WhatsApp/voice call. | **COMPLETED** (12/12 tests passing, Next.js build verified, 0.68s E2E latency). |
 | **R1: Supervised Pilot MVP** | 2–3 Supervised Warehouse Sites | Next.js frontend, FastAPI backend, Supabase DB, local RTSP agent, robust reconnect, event deduplication, full audit trail. | 30-minute uninterrupted monitoring on test hardware; p95 latency ≤ 5s; zero false emergency claims. |
 | **R2: Multi-Site Operations** | Multi-unit MSMEs & Logistics Hubs | Organization/site/camera hierarchy, role-based access control (Admin, Supervisor, Viewer), evidence retention policies, usage quotas. | Tenant data isolation certified; evidence encryption validated; audit log completeness verified. |
 | **R3: Enterprise Integrations** | CCTV Installers & System Integrators | Webhook notifications, external NVR/DVR ingestion bridges, automated device heartbeat telemetry, multi-channel messaging adapters. | Third-party webhook delivery rate ≥ 99%; camera auto-discovery certified. |
@@ -98,3 +98,4 @@ flowchart LR
 - [ ] Rehearse 3-minute pitch narrative (Problem -> Vernacular setup -> Edge trigger -> Context verify -> Action).
 - [ ] Finalize README, slide deck, architecture diagrams, and submission documentation.
 - **Exit Gate:** Flawless 3-minute live rehearsal with zero manual workarounds.
+

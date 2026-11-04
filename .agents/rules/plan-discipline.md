@@ -20,3 +20,4 @@ Never conclude a coding task without confirming that:
 - Code compiles / tests pass.
 - `plan/` files reflect the new reality.
 - Validation evidence is recorded in `plan/TASKS.md`.
+

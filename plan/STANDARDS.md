@@ -73,3 +73,4 @@ A task or feature in DrishtiFlow is strictly considered **DONE** only when all o
 | **Deterministic Policy Check** | ≤ 20ms | In-memory evaluation of schedules and cooldowns |
 | **Action Dispatch (Queue to API)** | ≤ 500ms | Asynchronous non-blocking worker |
 | **Client Bundle Size (Initial Load)** | ≤ 250 KB gzip | Dynamic import for React Flow canvas and ONNX runtime |
+

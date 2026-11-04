@@ -85,3 +85,4 @@ At the end of every response or tool execution cycle that touched repository fil
 - [ ] Were any architectural or roadmap impacts documented in `plan/ARCHITECTURE.md` or `plan/ROADMAP.md`?
 
 *Failure to update the `plan/` directory renders the turn incomplete.*
+
