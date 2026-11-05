@@ -16,9 +16,11 @@ class Settings:
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     WORKFLOW_COMPILER_PROVIDER: str = os.getenv("WORKFLOW_COMPILER_PROVIDER", "groq" if os.getenv("GROQ_API_KEY") else "gemini")
     WORKFLOW_COMPILER_API_KEY: str = os.getenv("WORKFLOW_COMPILER_API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
-    VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini" if os.getenv("GOOGLE_API_KEY") or os.getenv("VISION_API_KEY") else "mock")
+    # Default to the live provider; absent credentials then fail closed in verifier.py.
+    # Offline demo behavior requires an explicit VISION_PROVIDER=mock setting.
+    VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini")
     VISION_API_KEY: str = os.getenv("VISION_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     XAI_API_KEY: str = os.getenv("XAI_API_KEY", "")

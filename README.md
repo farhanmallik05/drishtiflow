@@ -100,7 +100,7 @@ flowchart TD
   - `uncertain`: Visual ambiguity (blur, partial occlusion).
   - `needs_human_review`: Operator intervention required.
   - `processing_failed`: Provider timeout safely degraded (never treated as safe).
-- Built-in **Deterministic Mock Fallback** ensures 100% reliable offline presentations.
+- An explicitly selected `VISION_PROVIDER=mock` mode supports offline demonstrations. It reports deterministic mock provenance and must not be represented as live visual verification.
 
 ### 5. Deterministic Policy Engine & Idempotent Actions
 - **AI never triggers alarms directly.** Code decides:
@@ -178,27 +178,27 @@ npm run dev --workspace=apps/web
 
 ## 🧪 Testing & Validation Evidence
 
-Run the complete test suite across backend, edge agent, and end-to-end integration:
+Run offline unit and API tests (real provider calls are excluded by default):
 
 ```bash
-# Run all Python tests (API, Edge Agent, Policy Stress, Evaluation Harness, E2E Pipeline)
-python -m pytest services/
+python -m pytest services/api/tests services/edge-agent/tests
+
+# Run the separately marked Groq/Gemini provider integration tests.
+# This sends requests to configured external services and may incur charges.
+python -m pytest -m integration services/api/tests/test_groq_compiler.py services/api/tests/test_gemini_verifier.py
 
 # Run frontend linting & production build
 npm run lint --workspace=apps/web
 npm run build --workspace=apps/web
 ```
 
-### Measured Benchmark Evidence
-| Metric | Measured Value | Standard / Budget | Status |
-|---|---|---|:---:|
-| **E2E Pipeline Latency** | 770ms (p95) | ≤ 5,000ms | 🟢 PASS |
-| **Evaluation Precision** | 100.0% (5 TP, 0 FP on test set) | ≥ 90.0% | 🟢 PASS |
-| **Evaluation Recall** | 100.0% (5 TP, 0 FN on test set) | ≥ 90.0% | 🟢 PASS |
-| **Edge Frame Ingestion** | 24 FPS with ray-casting PIP | ≥ 20 FPS | 🟢 PASS |
-| **Client Bundle Size** | 102 kB First Load JS | ≤ 250 kB | 🟢 PASS |
-| **Action Idempotency** | 100% duplicate suppression via SHA-256 | Zero duplicates | 🟢 PASS |
-| **Test Suite Coverage** | 35 passed in 9.72s | 100% assertions | 🟢 PASS |
+### Verification status (2026-11-05)
+
+- Frontend lint passed with no warnings or errors.
+- Frontend production build completed successfully; Next.js generated the static routes.
+- Python tests were not run in the current workspace because no Python runtime is installed.
+- The synthetic image fixtures are checked for valid image encoding only. No real-world precision, recall, false-positive rate, or monitoring latency claim is made here.
+- Physical camera, live provider delivery, and 30-minute monitoring acceptance tests still require their external hardware and credentials.
 
 ---
 

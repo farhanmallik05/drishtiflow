@@ -333,7 +333,7 @@ async def compile_prompt(
     # 2. Google Gemini Cloud LLM Compiler
     gemini_key = settings.GOOGLE_API_KEY or (settings.WORKFLOW_COMPILER_API_KEY if settings.WORKFLOW_COMPILER_PROVIDER == "gemini" else "")
     if gemini_key:
-        candidate_models = [settings.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-3-flash-preview"]
+        candidate_models = [settings.GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.8-flash"]
         # Deduplicate while preserving order
         models_to_try = []
         for m in candidate_models:
@@ -342,7 +342,7 @@ async def compile_prompt(
 
         for model_name in models_to_try:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
                 payload = {
                     "contents": [{
                         "parts": [
@@ -355,7 +355,7 @@ async def compile_prompt(
                     }
                 }
                 async with httpx.AsyncClient(timeout=httpx.Timeout(connect=4.0, read=8.0, write=4.0, pool=4.0)) as client:
-                    res = await client.post(url, json=payload)
+                    res = await client.post(url, headers={"x-goog-api-key": gemini_key}, json=payload)
                     if res.status_code == 200:
                         data = res.json()["candidates"][0]["content"]["parts"][0]["text"]
                         parsed = json.loads(data)

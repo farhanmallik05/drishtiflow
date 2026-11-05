@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 2026-11-05 (AI Verification Status Correction)
+
+### Changed
+- Corrected R1 status: synthetic generated images do not substantiate real-world precision/recall, and the current harness permits provider failures and mock mode.
+- Kept `TSK-R1-04` and `TSK-R1-11` in progress until their provider tests can be rerun; Python is unavailable in this execution environment.
+- Recorded the fail-closed Gemini contract for missing evidence/configuration and invalid provider responses.
+- Changed Gemini credentials to use Google's documented `x-goog-api-key` header; malformed response bodies and provider error payloads are not returned to callers.
+- Updated the configurable Gemini default and fallback candidates to current stable models listed in Google's model guide.
+- Made Gemini the default provider so missing credentials fail closed; mock operation now requires explicit configuration. Added the missing Pillow backend dependency.
+- Marked paid Groq/Gemini calls as explicit integration tests, excluded from the default offline suite, and asserted that compiler integration cases actually used Groq.
+- Replaced the synthetic-image “accuracy benchmark” with an asset-decode unit check; added an autouse fixture that keeps regular API tests offline.
+- Added a dated correction to the operational audit so historical synthetic results and unverified pilot-readiness claims are superseded.
+- Updated README test commands and validation status; offline unit tests and billable provider integrations are documented separately.
+- Corrected the workflow audit classification and FCS-10 status to keep real-image benchmarking open.
+- Set R1 status to active and corrected task summary counts: no R1 blocker task currently meets acceptance.
+- Verification in this turn: frontend lint passed with no warnings/errors; frontend production build exited 0 and generated 4 static routes. Python tests remain unrun because no runtime is installed.
+- **Additional verification:** `git diff --check` reported no whitespace errors; only Git line-ending normalization notices remain.
+
+### Planning
+- **Tasks:** `TSK-R1-04`, `TSK-R1-11`. **Files:** `README.md`, `services/api/app/services/verifier.py`, `services/api/app/services/compiler.py`, `services/api/app/config.py`, `services/api/tests/test_evaluation_harness.py`, `services/api/tests/test_gemini_verifier.py`, `services/api/tests/test_groq_compiler.py`, `services/api/tests/conftest.py`, `services/api/requirements.txt`, `.env.example`, `pytest.ini`, `plan/STATE.md`, `plan/TASKS.md`, `plan/ROADMAP.md`, `plan/ARCHITECTURE.md`, `plan/WORKFLOW_AUDIT_REPORT.md`, `plan/CHANGELOG.md`.
+
 ## [0.1.0-alpha.10] - 2026-11-05 (Genuine Groq & Gemini AI Integrations & 10-Case Empirical Benchmark)
 
 ### Added & Changed

@@ -1,10 +1,9 @@
 import io
-import time
 import base64
 import random
 import pytest
 from PIL import Image, ImageDraw, ImageFilter
-from services.api.app.services.verifier import verify_context
+from services.api.app.services.verifier import validate_and_decode_image
 
 def create_synthetic_surveillance_frame(scenario: str) -> str:
     """
@@ -183,108 +182,12 @@ LABELED_EVALUATION_SUITE = [
     }
 ]
 
-@pytest.mark.asyncio
-async def test_10_case_labeled_evaluation_benchmark():
-    """
-    Executes empirical visual evaluation across all 10 real synthetic surveillance frames.
-    Computes Precision, Recall, False Positive Rate (FPR), False Negative Rate (FNR),
-    and per-sample latencies.
-    """
-    tp = 0
-    fp = 0
-    tn = 0
-    fn = 0
-    uncertain_count = 0
-    latencies = []
+def test_synthetic_evaluation_assets_are_decodable():
+    """Check generated fixtures only; this test makes no model-accuracy claim."""
+    for case in LABELED_EVALUATION_SUITE:
+        encoded = create_synthetic_surveillance_frame(case["scenario"])
+        raw_bytes, clean_b64, mime_or_error = validate_and_decode_image(encoded)
 
-    print("\n" + "=" * 95)
-    print(f"{'ID':<9} | {'SCENARIO':<23} | {'EXPECTED':<10} | {'ACTUAL':<14} | {'CONF':<6} | {'LATENCY':<7} | {'SUMMARY'}")
-    print("-" * 95)
-
-    verification_prompt = (
-        "Verify whether an unauthorized living person is clearly present inside the red restricted zone. "
-        "Distinguish real living intruders from inanimate objects, mannequins, stands, shadows, or reflections."
-    )
-
-    for i, case in enumerate(LABELED_EVALUATION_SUITE):
-        if i > 0:
-            # Polite interval to avoid triggering cloud API 15 RPM throttling
-            import asyncio
-            await asyncio.sleep(2.2)
-
-        b64_img = create_synthetic_surveillance_frame(case["scenario"])
-        t0 = time.perf_counter()
-        
-        result = await verify_context(
-            evidence_frame_base64=b64_img,
-            verification_instruction=verification_prompt,
-            event_type="restricted_zone_entry",
-            detector_confidence=0.88
-        )
-        elapsed_ms = (time.perf_counter() - t0) * 1000.0
-        latencies.append(elapsed_ms)
-
-        decision = result.decision
-        category = case["ground_truth_category"]
-
-        # Classification matrix
-        if category == "positive":
-            if decision == "confirmed":
-                tp += 1
-                status = "TP (HIT)"
-            elif decision == "not_confirmed":
-                fn += 1
-                status = "FN (MISS)"
-            else:
-                uncertain_count += 1
-                status = "UNCERTAIN"
-        elif category == "negative":
-            if decision == "not_confirmed":
-                tn += 1
-                status = "TN (CORRECT)"
-            elif decision == "confirmed":
-                fp += 1
-                status = "FP (FALSE ALARM)"
-            else:
-                tn += 1  # Safe degradation to human review or uncertain is safe rejection
-                uncertain_count += 1
-                status = "SAFE UNCERTAIN"
-        else: # ambiguous
-            uncertain_count += 1
-            status = "AMBIGUOUS EVAL"
-
-        # Verify decision is acceptable or safely degraded on external provider network error
-        expected_choices = case["acceptable_decisions"] + ["processing_failed"]
-        assert decision in expected_choices, (
-            f"Case {case['id']} ({case['scenario']}) returned unacceptable decision '{decision}'. "
-            f"Expected one of: {expected_choices}. Summary: {result.evidence_summary}"
-        )
-
-        summary_preview = result.evidence_summary[:38] + "..." if len(result.evidence_summary) > 38 else result.evidence_summary
-        print(f"{case['id']:<9} | {case['scenario']:<23} | {category:<10} | {decision:<14} | {result.confidence:<6.2f} | {elapsed_ms:<6.0f}ms | {summary_preview}")
-
-    print("=" * 95)
-
-    # Compute empirical benchmarks
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 1.0
-    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
-    fnr = fn / (fn + tp) if (fn + tp) > 0 else 0.0
-    avg_latency = sum(latencies) / len(latencies) if latencies else 0.0
-
-    print(f"\n--- EMPIRICAL ACCURACY & RELIABILITY BENCHMARK ---")
-    print(f"Total Test Cases:            {len(LABELED_EVALUATION_SUITE)}")
-    print(f"True Positives (TP):         {tp}  (Clear unauthorized intrusions correctly confirmed)")
-    print(f"False Positives (FP):        {fp}  (Unwarranted alarms on empty bays/shadows)")
-    print(f"True Negatives (TN):         {tn}  (Safe scenes / false detections correctly rejected)")
-    print(f"False Negatives (FN):        {fn}  (Actual intrusions missed)")
-    print(f"Degraded to Human Review:    {uncertain_count}  (Ambiguous/low-light cases safely held for operator)")
-    print(f"Precision:                   {precision * 100:.1f}%")
-    print(f"Recall:                      {recall * 100:.1f}%")
-    print(f"False Positive Rate (FPR):   {fpr * 100:.1f}%")
-    print(f"False Negative Rate (FNR):   {fnr * 100:.1f}%")
-    print(f"Average Latency:             {avg_latency:.1f}ms")
-    print(f"--------------------------------------------------\n")
-
-    # PRD Acceptance Criteria Gate (FCS-10 & BLOCKER-10)
-    assert fp == 0, f"Safety violation: False positives ({fp}) must be zero on hard negative controls!"
+        assert raw_bytes
+        assert clean_b64 == encoded
+        assert mime_or_error == "image/jpeg"

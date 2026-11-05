@@ -71,8 +71,14 @@ async def verify_context(
     instruction = verification_instruction or "Verify whether an unauthorized living person is clearly present inside the configured restricted zone. Distinguish real humans from inanimate objects, posters, mannequins, reflections, or shadows."
     api_key = settings.VISION_API_KEY or settings.GOOGLE_API_KEY
 
-    # 1. Live Cloud VLM Provider (Google Gemini Vision) when evidence frame is provided
-    if settings.VISION_PROVIDER == "gemini" and api_key and evidence_frame_base64:
+    # A selected live provider must fail closed. Never replace missing evidence,
+    # credentials, or provider output with a confidence-based mock confirmation.
+    if settings.VISION_PROVIDER == "gemini":
+        if not api_key:
+            return _failed_result(event_type, "Gemini is selected but no API key is configured.")
+        if not evidence_frame_base64:
+            return _failed_result(event_type, "Gemini verification requires an evidence image.")
+
         raw_bytes, clean_b64, mime_or_err = validate_and_decode_image(evidence_frame_base64)
         if not raw_bytes or not clean_b64:
             return VerificationResult(
@@ -102,7 +108,7 @@ async def verify_context(
             f'- "requires_human_review": boolean'
         )
 
-        candidate_models = [settings.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-3-flash-preview"]
+        candidate_models = [settings.GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.8-flash"]
         models_to_try = []
         for m in candidate_models:
             if m and m not in models_to_try:
@@ -112,7 +118,7 @@ async def verify_context(
         last_error = ""
 
         for model_name in models_to_try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
             payload = {
                 "contents": [{
                     "parts": [
@@ -129,56 +135,36 @@ async def verify_context(
             for attempt in range(2):
                 try:
                     async with httpx.AsyncClient(timeout=timeout_config) as client:
-                        res = await client.post(url, json=payload)
+                        res = await client.post(
+                            url,
+                            headers={"x-goog-api-key": api_key},
+                            json=payload,
+                        )
                         if res.status_code == 200:
                             data = res.json()
                             raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-                            parsed = json.loads(raw_text)
-
-                            decision = parsed.get("decision", "uncertain")
-                            if decision not in ALLOWED_DECISIONS:
-                                decision = "uncertain"
-
-                            requires_hr = bool(parsed.get("requires_human_review", decision in ["uncertain", "needs_human_review"]))
-                            if decision in ["uncertain", "needs_human_review"]:
-                                requires_hr = True
-
-                            return VerificationResult(
-                                decision=decision,
-                                event_type=event_type,
-                                confidence=float(parsed.get("confidence", 0.90)),
-                                evidence_summary=parsed.get("evidence_summary", "Visual context verified by Gemini VLM."),
-                                limitations=parsed.get("limitations", []),
-                                requires_human_review=requires_hr,
-                                model_provider="google-gemini",
-                                model_version=model_name
-                            )
+                            return _parse_gemini_response(raw_text, event_type, model_name)
                         elif res.status_code in [429, 500, 503] and attempt == 0:
                             await asyncio.sleep(0.5)
                             continue
                         else:
-                            last_error = f"HTTP {res.status_code}: {res.text[:120]}"
+                            # Keep response bodies and request credentials out of API output.
+                            last_error = f"Gemini returned HTTP {res.status_code}."
                             break
                 except httpx.TimeoutException:
-                    last_error = f"Model {model_name} timed out after 10.0s"
+                    last_error = f"Gemini model {model_name} timed out."
                     break
-                except Exception as e:
-                    last_error = str(e)
+                except Exception:
+                    last_error = f"Gemini returned an invalid response for model {model_name}."
                     break
 
         # Safe degradation on live provider failure (PRD FR-A-10)
-        return VerificationResult(
-            decision="processing_failed",
-            event_type=event_type,
-            confidence=0.0,
-            evidence_summary=f"Context verification failed during Gemini call: {last_error}",
-            limitations=["Provider timeout or connection failure", last_error[:80]],
-            requires_human_review=True,
-            model_provider="google-gemini",
-            model_version=settings.GEMINI_MODEL
-        )
+        return _failed_result(event_type, last_error or "Gemini verification failed.", model=settings.GEMINI_MODEL)
 
-    # 2. Deterministic Mock Fallback (Guaranteed reliability for local dev, offline mode, and unit tests)
+    if settings.VISION_PROVIDER != "mock":
+        return _failed_result(event_type, "Unsupported vision provider configuration.")
+
+    # Deterministic behavior is only available when mock mode is explicitly selected.
     await asyncio.sleep(0.02)
 
     if detector_confidence >= 0.75:
@@ -214,3 +200,52 @@ async def verify_context(
             model_provider="drishtiflow-deterministic-vlm-v1",
             model_version="mock-warehouse-v3"
         )
+
+
+def _failed_result(event_type: str, reason: str, model: str = "unavailable") -> VerificationResult:
+    """Return a non-actionable failure while requiring operator review."""
+    return VerificationResult(
+        decision="processing_failed",
+        event_type=event_type,
+        confidence=0.0,
+        evidence_summary="Context verification could not be completed.",
+        limitations=[reason],
+        requires_human_review=True,
+        model_provider="google-gemini" if model != "unavailable" else settings.VISION_PROVIDER,
+        model_version=model,
+    )
+
+
+def _parse_gemini_response(raw_text: str, event_type: str, model: str) -> VerificationResult:
+    """Parse and strictly validate model JSON before exposing it to policy code."""
+    parsed = json.loads(raw_text)
+    if not isinstance(parsed, dict):
+        raise ValueError("Gemini response must be a JSON object.")
+
+    decision = parsed.get("decision")
+    confidence = parsed.get("confidence")
+    summary = parsed.get("evidence_summary")
+    limitations = parsed.get("limitations")
+    requires_hr = parsed.get("requires_human_review")
+    if (
+        decision not in ALLOWED_DECISIONS - {"processing_failed"}
+        or not isinstance(confidence, (int, float))
+        or isinstance(confidence, bool)
+        or not isinstance(summary, str)
+        or not summary.strip()
+        or not isinstance(limitations, list)
+        or any(not isinstance(item, str) for item in limitations)
+        or not isinstance(requires_hr, bool)
+    ):
+        raise ValueError("Gemini returned an invalid verification response.")
+
+    return VerificationResult(
+        decision=decision,
+        event_type=event_type,
+        confidence=float(confidence),
+        evidence_summary=summary.strip(),
+        limitations=limitations,
+        requires_human_review=requires_hr or decision in {"uncertain", "needs_human_review"},
+        model_provider="google-gemini",
+        model_version=model,
+    )

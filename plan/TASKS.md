@@ -2,7 +2,7 @@
 **Milestone:** R0 — Hackathon Prototype (Build with Bharat 5.0)  
 **Governing Document:** [DrishtiFlow_Enhanced_PRD_v3_EMPTY.md](file:///d:/hackathon/Build%20with%20Bharat/DrishtiFlow_Enhanced_PRD_v3_EMPTY.md)  
 **Plan Rule:** [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLAN_RULE.md)  
-**Last Updated:** 2026-11-04T19:47:00+05:30
+**Last Updated:** 2026-11-06T00:01:00+05:30
 
 ---
 
@@ -25,8 +25,8 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
-| **Milestone R1 Pilot Blocker Clearance Track** | All | 11 | 3 | 0 | 8 |
-| **Total** | | **38** | **30** | **0** | **8** |
+| **Milestone R1 Pilot Blocker Clearance Track** | All | 11 | 0 | 2 | 9 |
+| **Total** | | **38** | **27** | **2** | **9** |
 
 ---
 
@@ -267,19 +267,17 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
   - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
 
-- [x] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration & Image-Based Evaluation Harness.
+- [~] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration & Image-Based Evaluation Harness.
   - **Dependencies:** `TSK-D3-02`
   - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules; create 10-case labeled image dataset with metrics (precision, recall, false positive/negative rates).
-  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`); Pillow image decoding & MIME validation; provider timeout safely yields `processing_failed`; labeled image test suite measures genuine visual classification performance.
-  - **Validation Evidence:** Live verification executed via `gemini-flash-lite-latest` and `gemini-3-flash-preview`. 10-case labeled image benchmark (`services/api/tests/test_evaluation_harness.py`) executed on 10 synthetic surveillance frames: Precision 100.0%, Recall 100.0%, False Positive Rate 0.0%, False Negative Rate 0.0%, Average Latency 1720.6ms. All negative controls (empty warehouse, floor shadows, cardboard mannequin on stand) correctly rejected (`not_confirmed`). Dedicated test suite `services/api/tests/test_gemini_verifier.py` (6/6 passing).
-  - **Completed Date:** 2026-11-05
+  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`); missing evidence, provider errors, malformed output, and schema failures safely yield `processing_failed`; separately configured integration tests use labeled real imagery. Synthetic drawings do not establish real-world accuracy.
+  - **Current Finding (2026-11-05):** The current evaluation harness generates synthetic drawings, allows `processing_failed`, and follows runtime provider configuration; it is not evidence of genuine visual accuracy. Python is unavailable in this execution environment, so live-provider and regression tests could not be rerun. Keep this task in progress.
 
-- [x] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
+- [~] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
   - **Dependencies:** `TSK-D1-04`
   - **Scope:** Integrate live Groq API (`qwen/qwen3.8-27b`) with JSON mode; support Hindi, Hinglish, and English; validate against `WorkflowDefinition`; enforce allowlists; provide explicit fallback reporting.
   - **Acceptance Criteria:** Real Groq requests return schema-valid workflows; incomplete rules trigger clarification questions; missing/invalid keys gracefully fall back with explicit metadata; allowlists enforce detector classes and action items.
-  - **Validation Evidence:** Live Groq API calls executed via `qwen/qwen3.8-27b` with sub-second response times. Validated on vernacular prompts (Hindi, Hinglish, English). Bounded retries (3 attempts with exponential backoff) and allowlist filtering verified. Dedicated test suite `services/api/tests/test_groq_compiler.py` (6/6 passing).
-  - **Completed Date:** 2026-11-05
+  - **Current Finding (2026-11-05):** Provider integration and tests are present, but cannot be rerun here because Python is unavailable. Existing live-call evidence remains recorded in the historical changelog and requires a reproducible configured run before this task is closed.
 
 - [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
   - **Dependencies:** `TSK-D5-03`

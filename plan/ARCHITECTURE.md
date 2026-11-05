@@ -116,7 +116,8 @@ flowchart TD
   - `needs_human_review`: Edge case requiring operator sign-off before escalation.
   - `processing_failed`: Provider error, timeout, or schema failure.
 - **Safety Policy:** Provider timeout or schema failure NEVER resolves to `safe` or `confirmed`. It safely degrades to `uncertain` / `processing_failed`.
-- **Offline Fallback:** Deterministic local mock verifier pre-trained on the demonstration test clips to ensure zero-risk live presentations if internet connectivity fails.
+- **Provider Selection:** Deterministic verification runs only when `VISION_PROVIDER=mock` is explicitly configured. A selected live provider with missing credentials, image evidence, or a valid response fails closed to `processing_failed` with human review required; it must not fall through to mock confirmation.
+- **Response Validation:** Provider output must parse as JSON and validate against `VerificationResult` before returning. Missing decision/evidence fields and invalid decisions cannot receive success-shaped defaults.
 
 ---
 

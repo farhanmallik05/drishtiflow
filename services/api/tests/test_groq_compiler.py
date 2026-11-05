@@ -9,8 +9,11 @@ from services.api.app.services.compiler import (
 from services.api.app.config import settings
 
 @pytest.mark.asyncio
-async def test_groq_hindi_instruction_compilation():
+@pytest.mark.integration
+@pytest.mark.skipif(not settings.GROQ_API_KEY, reason="Groq credentials are not configured")
+async def test_groq_hindi_instruction_compilation(monkeypatch):
     """Verify live Groq compiler on Hindi prompt."""
+    monkeypatch.setattr(settings, "WORKFLOW_COMPILER_PROVIDER", "groq")
     prompt = "Raat 10 baje ke baad godown mein koi aadmi dikhe toh whatsapp alert bhejo"
     wf = await compile_prompt(prompt)
 
@@ -19,23 +22,31 @@ async def test_groq_hindi_instruction_compilation():
     assert wf.status == "needs_review"
     assert any(a.type == "whatsapp_message" for a in wf.actions)
     assert any("Compiler:" in a for a in wf.assumptions)
+    assert any("groq_cloud" in a for a in wf.assumptions)
     if wf.trigger.schedule:
         assert wf.trigger.schedule.start in ["22:00", "20:00", "21:00"]
 
 @pytest.mark.asyncio
-async def test_groq_hinglish_instruction_compilation():
+@pytest.mark.integration
+@pytest.mark.skipif(not settings.GROQ_API_KEY, reason="Groq credentials are not configured")
+async def test_groq_hinglish_instruction_compilation(monkeypatch):
     """Verify live Groq compiler on Hinglish prompt with siren alert."""
+    monkeypatch.setattr(settings, "WORKFLOW_COMPILER_PROVIDER", "groq")
     prompt = "Machinery bay area me koi bhi vehicle enter kare toh local siren bajao"
     wf = await compile_prompt(prompt)
 
     assert wf.schema_version == "1.0"
     assert any(c in ["vehicle", "car", "truck"] for c in wf.trigger.classes)
     assert wf.status == "needs_review"
+    assert any("groq_cloud" in a for a in wf.assumptions)
     assert any(a.type in ["local_siren", "dashboard_alert"] for a in wf.actions)
 
 @pytest.mark.asyncio
-async def test_groq_english_instruction_compilation():
+@pytest.mark.integration
+@pytest.mark.skipif(not settings.GROQ_API_KEY, reason="Groq credentials are not configured")
+async def test_groq_english_instruction_compilation(monkeypatch):
     """Verify live Groq compiler on English prompt with schedule window."""
+    monkeypatch.setattr(settings, "WORKFLOW_COMPILER_PROVIDER", "groq")
     prompt = "Detect any unauthorized person inside warehouse bay between 8pm and 6am and send dashboard alert"
     wf = await compile_prompt(prompt)
 
@@ -43,14 +54,19 @@ async def test_groq_english_instruction_compilation():
     assert "person" in wf.trigger.classes
     assert wf.status == "needs_review"
     assert any(a.type == "dashboard_alert" for a in wf.actions)
+    assert any("groq_cloud" in a for a in wf.assumptions)
 
 @pytest.mark.asyncio
-async def test_groq_clarification_for_missing_zone_and_schedule():
+@pytest.mark.integration
+@pytest.mark.skipif(not settings.GROQ_API_KEY, reason="Groq credentials are not configured")
+async def test_groq_clarification_for_missing_zone_and_schedule(monkeypatch):
     """Verify compiler generates clarification questions for unspecified zone or schedule."""
+    monkeypatch.setattr(settings, "WORKFLOW_COMPILER_PROVIDER", "groq")
     prompt = "Notify me when someone moves"
     wf = await compile_prompt(prompt)
 
     assert wf.status == "needs_review"
+    assert any("groq_cloud" in a for a in wf.assumptions)
     assert len(wf.clarification_questions) >= 1
     # Should ask about zone boundary or schedule window
     assert any("zone" in q.lower() or "schedule" in q.lower() or "hour" in q.lower() for q in wf.clarification_questions)
