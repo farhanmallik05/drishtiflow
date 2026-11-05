@@ -1,6 +1,7 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-04T22:45:00+05:30  
-**Active Milestone:** Milestone R0 — Hackathon Prototype (Audited & Verified)  
+**Last Updated:** 2026-11-05T22:13:00+05:30  
+**Active Milestone:** Milestone R0 — Hackathon Prototype (Published & Verified)  
+**GitHub Repository:** `farhanmallik05/drishtiflow`  
 **Next Milestone:** Milestone R1 — Supervised Pilot MVP  
 **Overall System Health:** 🟢 GREEN (Universal Project Evaluation Score: 7.9/10, Top 1% Tier)
 

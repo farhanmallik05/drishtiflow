@@ -36,3 +36,4 @@ class CameraResponse(BaseModel):
     last_heartbeat_at: Optional[str] = None
     zones: List[ZoneResponse] = []
     created_at: str
+

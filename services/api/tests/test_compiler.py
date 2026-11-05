@@ -22,3 +22,4 @@ def test_vernacular_compile_english_prompt():
     wf = response.json()
     assert "vehicle" in wf["trigger"]["classes"]
     assert wf["trigger"]["schedule"]["start"] == "20:00"
+

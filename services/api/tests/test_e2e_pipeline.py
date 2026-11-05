@@ -3,6 +3,7 @@ import pytest
 from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 from services.api.app.main import app
+from services.api.app.database import get_db
 
 client = TestClient(app)
 
@@ -65,6 +66,12 @@ def test_full_drishtiflow_e2e_pipeline():
     assert activate_res.json()["status"] == "active"
     print(f"Activated Workflow ID: {workflow_id}")
 
+    # Version Snapshot (PRD §9)
+    version_res = client.post(f"/api/v1/workflows/{workflow_id}/versions")
+    assert version_res.status_code == 201
+    assert version_res.json()["version"] == 2
+    print(f"Created Workflow Version Snapshot v2")
+
     print("\n--- 4. EDGE CANDIDATE EVENT & CONTEXT VERIFICATION ---")
     event_payload = {
         "event_id": str(uuid.uuid4()),
@@ -112,3 +119,18 @@ def test_full_drishtiflow_e2e_pipeline():
     assert len(detail["actions"]) >= 1
     assert len(detail["feedback"]) == 1
     print("Full End-to-End Pipeline Passed with Zero Errors!")
+
+    # Teardown / isolation cleanup
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM actions WHERE incident_id = ?", (incident_id,))
+        cursor.execute("DELETE FROM feedback WHERE incident_id = ?", (incident_id,))
+        cursor.execute("DELETE FROM incidents WHERE id = ?", (incident_id,))
+        cursor.execute("DELETE FROM workflow_versions WHERE workflow_id = ?", (workflow_id,))
+        cursor.execute("DELETE FROM workflows WHERE id = ?", (workflow_id,))
+        cursor.execute("DELETE FROM zones WHERE camera_id = ?", (camera_id,))
+        cursor.execute("DELETE FROM cameras WHERE id = ?", (camera_id,))
+        conn.commit()
+    finally:
+        conn.close()

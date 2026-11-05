@@ -18,3 +18,4 @@ async def test_action(req: TestActionRequest):
         message=req.message
     )
     return result
+

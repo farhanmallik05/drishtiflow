@@ -60,3 +60,4 @@ class WorkflowCreateRequest(BaseModel):
     name: str
     camera_id: Optional[str] = None
     definition: WorkflowDefinition
+

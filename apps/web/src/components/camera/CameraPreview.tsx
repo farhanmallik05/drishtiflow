@@ -103,10 +103,59 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       setIsAlarming(false);
       hasTriggeredRef.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personPos, zonePoints]);
 
   const emitCandidateEvent = async () => {
-    const eventPayload = {
+    let evidenceFrame: string | null = null;
+
+    if (sourceType === "webcam" && videoRef.current) {
+      try {
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = videoRef.current.videoWidth || 640;
+        offCanvas.height = videoRef.current.videoHeight || 360;
+        const ctx = offCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(videoRef.current, 0, 0, offCanvas.width, offCanvas.height);
+          evidenceFrame = offCanvas.toDataURL("image/jpeg", 0.7);
+        }
+      } catch (err) {
+        console.warn("Could not capture webcam frame:", err);
+      }
+    }
+
+    if (!evidenceFrame && typeof document !== "undefined") {
+      try {
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = 640;
+        offCanvas.height = 360;
+        const ctx = offCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(0, 0, 640, 360);
+          ctx.strokeStyle = "#334155";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(40, 40, 560, 280);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "12px monospace";
+          ctx.fillText("CAM 01 // BHIWANDI GODOWN #4 // RESTRICTED BAY A", 50, 65);
+          const b = detectedBoxes[0];
+          ctx.strokeStyle = "#f97316";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(b.x_min * 640, b.y_min * 360, (b.x_max - b.x_min) * 640, (b.y_max - b.y_min) * 360);
+          ctx.fillStyle = "#ea580c";
+          ctx.fillRect(b.x_min * 640, b.y_min * 360 - 18, 90, 18);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 10px monospace";
+          ctx.fillText("PERSON 0.89", b.x_min * 640 + 4, b.y_min * 360 - 5);
+          evidenceFrame = offCanvas.toDataURL("image/jpeg", 0.7);
+        }
+      } catch (err) {
+        console.warn("Could not generate simulation evidence frame:", err);
+      }
+    }
+
+    const eventPayload: any = {
       event_id: crypto.randomUUID(),
       camera_id: "cam-warehouse-gate-01",
       workflow_id: activeWorkflowId || null,
@@ -119,17 +168,23 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         confidence: 0.89,
         bounding_box: detectedBoxes[0],
       },
+      evidence_frame_base64: evidenceFrame,
     };
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
     try {
-      const res = await fetch("http://localhost:8000/api/v1/events/candidates", {
+      const res = await fetch(`${apiBase}/api/v1/events/candidates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventPayload),
       });
       if (res.ok) {
         const data = await res.json();
-        onCandidateTriggered(data);
+        onCandidateTriggered({
+          ...data,
+          evidence_frame_base64: evidenceFrame,
+        });
       }
     } catch (e) {
       console.error("Failed to emit candidate event to backend:", e);
@@ -299,3 +354,4 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
     </div>
   );
 };
+

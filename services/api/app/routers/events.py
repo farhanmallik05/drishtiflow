@@ -124,3 +124,4 @@ async def ingest_candidate_event(event: CandidateEvent):
         "dispatched_actions": dispatched_actions,
         "occurred_at": event.occurred_at
     }
+

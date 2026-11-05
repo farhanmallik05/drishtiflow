@@ -38,3 +38,4 @@ def test_action_test_endpoint():
     res = response.json()
     assert res["status"] in ["sent", "delivered"]
     assert "idempotency_key" in res
+

@@ -36,3 +36,4 @@ class StreamIngestion:
 
     def disconnect(self):
         self.is_connected = False
+

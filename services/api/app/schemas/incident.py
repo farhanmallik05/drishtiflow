@@ -72,3 +72,4 @@ class IncidentResponse(BaseModel):
     evidence_url: Optional[str] = None
     occurred_at: str
     created_at: str
+

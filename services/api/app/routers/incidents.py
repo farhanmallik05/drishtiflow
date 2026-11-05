@@ -145,3 +145,4 @@ def submit_feedback(incident_id: str, fb: FeedbackCreate):
         "label": fb.label,
         "created_at": now
     }
+

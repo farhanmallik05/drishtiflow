@@ -38,3 +38,4 @@ class CandidateEventEmitter:
                 return res.json()
             else:
                 raise RuntimeError(f"Event emission failed with HTTP {res.status_code}: {res.text}")
+

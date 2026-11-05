@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.5] - 2026-11-05 (GitHub Publication & Documentation)
+
+### Added
+- **Repository Documentation (`README.md`)**:
+  - Authored comprehensive project README with architecture diagrams, core problem statement, 5-stage vision pipeline, quickstart instructions, and benchmark telemetry.
+- **Git & Privacy Hygiene**:
+  - Updated `.gitignore` to prevent database locks, incremental build caches (`*.tsbuildinfo`), and agent scratch directories from version control.
+  - Removed local database binary (`services/api/drishtiflow.db`) from git index.
+- **GitHub Remote Integration**:
+  - Published project repository to GitHub under `farhanmallik05/drishtiflow`.
+
+---
+
 ## [0.1.0-alpha.4] - 2026-11-04 (Universal Project Due Diligence Audit)
 
 ### Added

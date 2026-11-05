@@ -179,3 +179,4 @@ def init_db():
 
 # Auto-initialize database on module import
 init_db()
+

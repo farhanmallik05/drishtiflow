@@ -134,3 +134,4 @@ def test_camera_connection(camera_id: str):
         "tested_at": now,
         "source_type": cam["source_type"]
     }
+

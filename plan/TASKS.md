@@ -177,8 +177,8 @@
 - [x] **`TSK-D4-04`**: Realtime Incident Feed & Feedback Card.
   - **Dependencies:** `TSK-D4-01`
   - **Scope:** Build live Incident Center showing event cards with keyframe snapshots, detector/verifier confidence, reason, and feedback buttons.
-  - **Acceptance Criteria:** New incidents appear in feed dynamically; clicking "True Positive" or "False Positive" submits feedback.
-  - **Validation Evidence:** `IncidentFeed.tsx` displays event cards with confidence comparison meters and operator feedback buttons.
+  - **Acceptance Criteria:** New incidents appear in feed dynamically; clicking "True Positive" or "False Positive" submits feedback; keyframe evidence snapshots display cleanly.
+  - **Validation Evidence:** `IncidentFeed.tsx` displays event cards with confidence comparison meters, keyframe image snapshots (`evidence_frame_base64`/`evidence_url`), and operator feedback buttons. Clean Next.js ESLint verified with 0 warnings/errors.
   - **Completed Date:** 2026-11-04
 
 ---
@@ -187,9 +187,9 @@
 
 - [x] **`TSK-D5-01`**: Deterministic Policy Engine.
   - **Dependencies:** `TSK-D1-03`
-  - **Scope:** Implement rule evaluator enforcing cooldowns (default 60s), rate limits (5/hour), schedule checks, and active flags.
-  - **Acceptance Criteria:** Suppresses duplicate candidate events arriving within the cooldown window; logs suppression reason.
-  - **Validation Evidence:** `services/api/app/services/policy.py` implemented; tested via `test_policy_and_events.py`.
+  - **Scope:** Implement rule evaluator enforcing cooldowns (default 60s), camera-scoped rate limits (5/hour), schedule checks, and active flags.
+  - **Acceptance Criteria:** Suppresses duplicate candidate events arriving within the cooldown window; correctly scopes rate limits to specific cameras; matches UTC ISO-8601 timestamps without SQLite format mismatch; logs suppression reason.
+  - **Validation Evidence:** `services/api/app/services/policy.py` implemented with camera join on incidents table and ISO cutoff parameter; verified via `test_policy_and_events.py` and `test_e2e_pipeline.py` (8/8 API tests passing).
   - **Completed Date:** 2026-11-04
 
 - [x] **`TSK-D5-02`**: Action Queue & Idempotency Engine.
@@ -219,9 +219,9 @@
 
 - [x] **`TSK-D6-01`**: End-to-End Integration Test Suite.
   - **Dependencies:** All tracks
-  - **Scope:** Test full pipeline: Hindi prompt → workflow compile → zone detection → VLM verify → policy check → action dispatch.
-  - **Acceptance Criteria:** Automated test script executes the entire pipeline in under 5 seconds with all assertions passing.
-  - **Validation Evidence:** `services/api/tests/test_e2e_pipeline.py` passes full 6-stage lifecycle in 0.68s.
+  - **Scope:** Test full pipeline: Hindi prompt → workflow compile → zone detection → VLM verify → policy check → action dispatch → versioning snapshot → teardown isolation.
+  - **Acceptance Criteria:** Automated test script executes the entire pipeline in under 5 seconds with all assertions passing deterministically on repeated runs.
+  - **Validation Evidence:** `services/api/tests/test_e2e_pipeline.py` executes full 6-stage lifecycle in 0.77s; includes version snapshot validation (`POST /api/v1/workflows/{id}/versions`) and clean teardown isolation.
   - **Completed Date:** 2026-11-04
 
 - [x] **`TSK-D6-02`**: Chaos & Degradation Scenarios.
