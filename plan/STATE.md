@@ -1,10 +1,13 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-05T22:30:00+05:30  
+**Last Updated:** 2026-11-05T22:58:00+05:30  
 **Active Milestone:** Milestone R0 — Hackathon Prototype (Audited & Published)  
 **GitHub Repository:** `farhanmallik05/drishtiflow`  
-**Latest Milestone Deliverable:** Complete Workflow Architecture & Operational Audit Report (`plan/WORKFLOW_AUDIT_REPORT.md`)  
-**Next Milestone:** Milestone R1 — Supervised Pilot MVP  
-**Overall System Health:** 🟢 GREEN (Overall Workflow Score: 7.9/10, Classification: Functional but Requires Configuration)
+**Latest Milestone Deliverables:**  
+- Complete Workflow Architecture & Operational Audit Report (`plan/WORKFLOW_AUDIT_REPORT.md` Rev 2)  
+- PRD §20 Feature-Completion Standards (FCS-01 to FCS-10) and Release Blockers (BLOCKER-01 to BLOCKER-10)  
+- Pre-Pilot Acceptance Gates (`plan/STANDARDS.md` §5 & `plan/ROADMAP.md` Milestone R1)  
+**Next Milestone:** Milestone R1 — Supervised Pilot MVP (Blocker Clearance Track)  
+**Overall System Health:** 🟢 GREEN (Workflow Score: 7.9/10, Classification: Functional but Requires Configuration)
 
 ---
 
@@ -12,14 +15,32 @@
 
 | Metric | Current Status | Target for R0 (Hackathon MVP) |
 |---|---|---|
-| **Active Milestone** | Milestone R0 Complete (27/27 tasks) | Complete repeatable live demo |
-| **Overall Progress** | 100% of R0 Prototype Scope | 100% of R0 Scope |
+| **Active Milestone** | Milestone R0 Complete (27/27 tasks verified) | Complete repeatable live demo |
+| **Milestone R1 Backlog** | 10 Blocker Clearance Tasks defined (`TSK-R1-01` to `10`) | Clear 10 PRD Release Blockers |
+| **Overall Progress** | 100% of R0 Prototype Scope; R1 Gates Established | 100% of R0 Scope |
 | **Monorepo Scaffold** | Complete (`apps/web`, `services/api`, `services/edge-agent`, `packages/*`) | Complete |
 | **Workflow Compiler** | Fully operational (Hindi/Hinglish/English) + Versioning & Activation Check | Strict schema output & needs_review |
 | **Edge Vision & Zone** | Interactive polygon canvas + ray-casting PIP + 1.5s dwell + Evidence frame | Zone trigger on human presence |
 | **Context Verifier** | 5-state decision engine + deterministic mock fallback | Multi-state VLM with safe degradation |
 | **Action Engine** | Policy cooldown + camera-scoped rate limit + WhatsApp/Vapi adapters | Idempotent alerts without duplicates |
-| **E2E Test Pipeline** | 12/12 unit & integration tests passing (0.77s E2E) | Automated end-to-end verification |
+| **E2E Test Pipeline** | 35/35 unit, integration, and stress tests passing (8.90s) | Automated end-to-end verification |
+
+---
+
+## 2. PRD Feature-Completion Standards & Release Blocker Status (PRD §20.2 & §20.3)
+
+| ID | PRD Core Requirement | Status in Codebase | Pilot MVP Status |
+|---|---|:---:|:---:|
+| **FCS-01** | **30-Minute Stable Monitoring** | Partially Verified (10-min manual) | ⚠️ **Active Release Blocker [BLOCKER-01]** |
+| **FCS-02** | **Dependable Edge Inference** | Algorithmic Core Verified (Ray-casting PIP + Dwell) | ⚠️ **Active Release Blocker [BLOCKER-02]** |
+| **FCS-03** | **Camera Health Lifecycle** | Status Schema & Test Ping Implemented | ⚠️ **Active Release Blocker [BLOCKER-03]** |
+| **FCS-04** | **Context Verification on Live Images** | Gemini/Groq Adapter Complete (Mock Fallback by Default) | ⚠️ **Active Release Blocker [BLOCKER-04]** |
+| **FCS-05** | **Verified Notification Delivery** | WhatsApp/Vapi Clients Complete (Sandbox by Default) | ⚠️ **Active Release Blocker [BLOCKER-05]** |
+| **FCS-06** | **Authentication & Access Control** | Endpoints Open for Demo Mode | ⚠️ **Active Release Blocker [BLOCKER-06]** |
+| **FCS-07** | **Multi-Tenant Data Isolation** | Schema Multi-Tenant; Auth Scoping Gap | ⚠️ **Active Release Blocker [BLOCKER-07]** |
+| **FCS-08** | **Cryptographic Evidence Management** | Base64 SQLite Storage; TTL Purge Gap | ⚠️ **Active Release Blocker [BLOCKER-08]** |
+| **FCS-09** | **Resilient Failure Recovery** | API Retries Implemented; Edge Disk Buffer Gap | ⚠️ **Active Release Blocker [BLOCKER-09]** |
+| **FCS-10** | **Empirical Performance Benchmarking** | 100% Precision/Recall on Test Set, 770ms p95 Latency | 🟢 **CLEARED IN R0 PROTOTYPE** |
 
 ---
 

@@ -74,3 +74,23 @@ A task or feature in DrishtiFlow is strictly considered **DONE** only when all o
 | **Action Dispatch (Queue to API)** | ≤ 500ms | Asynchronous non-blocking worker |
 | **Client Bundle Size (Initial Load)** | ≤ 250 KB gzip | Dynamic import for React Flow canvas and ONNX runtime |
 
+---
+
+## 5. Pre-Pilot Acceptance Gates & Non-Negotiable Release Blockers (PRD §20.2 & §20.3)
+
+Before any deployment transitions to a supervised commercial pilot (Milestone R1), it must clear all ten non-negotiable feature-completion standards:
+
+| Gate ID | Core PRD Requirement | Acceptance Standard | Release Blocker Rule |
+|---|---|---|---|
+| **GATE-01** | **30-Minute Continuous Stability** | Minimum 30-minute uninterrupted monitoring session on target hardware with < 5% memory heap growth. | **BLOCKER-01:** Never release if monitoring crashes or leaks memory over 30 minutes. |
+| **GATE-02** | **Dependable Edge Inference** | Real vision model weights (YOLOv8n) loaded and processing live camera frames at ≥ 20 FPS (WebGPU/TensorRT). | **BLOCKER-02:** Never release if edge detection runs on simulated coordinates instead of real model tensors. |
+| **GATE-03** | **Camera Health & Heartbeat** | Automatic heartbeat tracking; feed disconnect surfaced in UI within ≤ 15 seconds; exponential reconnect daemon. | **BLOCKER-03:** Never release if camera disconnect fails to trigger visible UI warning within 15 seconds. |
+| **GATE-04** | **Live VLM Context Verification** | Real keyframe images verified by live provider (Gemini 1.5 Flash / Groq Vision) with 5-state response and safe error degradation. | **BLOCKER-04:** Never release if VLM runs on mock heuristics in production, or model errors are treated as safe. |
+| **GATE-05** | **Verified Notification Delivery** | Confirmed receipt of alert on physical consenting recipient device within ≤ 5.0 seconds. | **BLOCKER-05:** Never release if alert delivery is unverified on real mobile hardware. |
+| **GATE-06** | **Authentication & Access Control** | JWT / OAuth2 token validation enforced on all API endpoints (except `/health`); zero client-side secrets. | **BLOCKER-06:** Never release if API endpoints allow unauthenticated access or expose credentials. |
+| **GATE-07** | **Multi-Tenant Data Isolation** | Strict SQL/schema query scoping to `organization_id`; cross-tenant access returns HTTP 403/404. | **BLOCKER-07:** Never release if a tenant can view or mutate another organization's cameras, rules, or evidence. |
+| **GATE-08** | **Cryptographic Evidence Management** | Encrypted storage at rest; configurable 7–30 day retention window; automated TTL purge API conforming to DPDP Act. | **BLOCKER-08:** Never release if retention periods are undefined or evidence cannot be verifiably deleted. |
+| **GATE-09** | **Resilient Failure Recovery** | Network severance buffers candidate events locally on edge disk; reconnect auto-flushes without dropping or duplicating alerts. | **BLOCKER-09:** Never release if network interruptions cause dropped incidents or duplicate notifications. |
+| **GATE-10** | **Empirical Performance Benchmarks** | Measured Precision ≥ 90.0%, Recall ≥ 90.0%, p95 latency ≤ 3.5s, and camera uptime ≥ 99.0% on labeled benchmark sets. | **BLOCKER-10:** Never release if performance claims lack empirical test evidence. |
+
+

@@ -25,7 +25,8 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
-| **Total** | | **27** | **27** | **0** | **0** |
+| **Milestone R1 Pilot Blocker Clearance Track** | All | 10 | 0 | 0 | 10 |
+| **Total** | | **37** | **27** | **0** | **10** |
 
 ---
 
@@ -244,3 +245,59 @@
   - **Acceptance Criteria:** Rehearsal completed within 3:00 timeline; offline toggle tested and verified.
   - **Validation Evidence:** Offline fallback mock mode documented in `plan/ARCHITECTURE.md` and integrated into UI.
   - **Completed Date:** 2026-11-04
+
+---
+
+## Milestone R1: Supervised Pilot MVP — Acceptance Criteria & Blocker Clearance Track (Owner: All)
+
+This track governs the resolution of the ten non-negotiable Pilot Release Blockers ([BLOCKER-01] to [BLOCKER-10]) established in PRD §20.3 and evaluated in [`plan/WORKFLOW_AUDIT_REPORT.md`](file:///d:/hackathon/Build%20with%20Bharat/plan/WORKFLOW_AUDIT_REPORT.md).
+
+- [ ] **`TSK-R1-01`**: 30-Minute Continuous Stability Soak Test on Physical Hardware.
+  - **Dependencies:** `TSK-D6-01`
+  - **Scope:** Execute uninterrupted 30-minute monitoring session on NVIDIA Jetson or Intel N100; profile RSS memory heap and CPU load every 30s.
+  - **Acceptance Criteria (Clears BLOCKER-01):** Zero unhandled process exits; memory heap growth between minute 5 and minute 30 < 5%; frame processing rate maintains ≥ 20 FPS throughout.
+
+- [ ] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
+  - **Dependencies:** `TSK-D2-01`
+  - **Scope:** Replace browser canvas and mock stream dictionaries with physical RTSP stream decoding via OpenCV and live YOLOv8n TensorRT/ONNX inference.
+  - **Acceptance Criteria (Clears BLOCKER-02):** Genuine computer vision inference executing on raw camera frame tensors at ≥ 20 FPS with per-frame latency ≤ 45ms.
+
+- [ ] **`TSK-R1-03`**: Real-Time Camera Heartbeat Watchdog & 15s Degradation UI.
+  - **Dependencies:** `TSK-D2-04`
+  - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
+  - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
+
+- [ ] **`TSK-R1-04`**: Live Gemini 1.5 Flash Cloud VLM Verification Integration.
+  - **Dependencies:** `TSK-D3-02`
+  - **Scope:** Deploy production Google Gemini 1.5 Flash API credentials; verify 10 real warehouse keyframes against natural language rules.
+  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response; provider timeout safely yields `processing_failed`.
+
+- [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
+  - **Dependencies:** `TSK-D5-03`
+  - **Scope:** Configure live Meta WhatsApp Business API credentials; execute physical intrusion test alert to consenting destination handset.
+  - **Acceptance Criteria (Clears BLOCKER-05):** Message physically received on mobile handset within ≤ 3.0 seconds; Meta message ID persisted in `actions` table.
+
+- [ ] **`TSK-R1-06`**: JWT Authentication & RBAC Authorization Middleware.
+  - **Dependencies:** `TSK-INIT-03`
+  - **Scope:** Implement FastAPI OAuth2 Bearer token authentication middleware; protect all `/api/v1/*` routes; enforce Admin, Supervisor, and Viewer role permissions.
+  - **Acceptance Criteria (Clears BLOCKER-06):** Unauthenticated requests rejected with HTTP 401; endpoints verify user role permissions; zero client-side credentials.
+
+- [ ] **`TSK-R1-07`**: Multi-Tenant Query Scoping & Adversarial Cross-Org Isolation Tests.
+  - **Dependencies:** `TSK-R1-06`
+  - **Scope:** Extract `organization_id` from authenticated JWT tokens; enforce SQL query scoping on all database operations; write automated cross-tenant security test suite.
+  - **Acceptance Criteria (Clears BLOCKER-07):** Token from Org A cannot read or write cameras, rules, or incidents belonging to Org B (returns HTTP 404/403).
+
+- [ ] **`TSK-R1-08`**: Encrypted Evidence Storage & DPDP Automated Purge Daemon.
+  - **Dependencies:** `TSK-D4-01`
+  - **Scope:** Implement S3/Cloud Storage integration with AES-256 encryption at rest; build daily background worker purging keyframes older than retention window (7–30 days).
+  - **Acceptance Criteria (Clears BLOCKER-08):** Continuous video discarded locally; incident snapshots encrypted at rest; automated purge verified by audit log.
+
+- [ ] **`TSK-R1-09`**: Edge Local SQLite Queue Buffer & WAN Interruption Resilience.
+  - **Dependencies:** `TSK-D2-03`
+  - **Scope:** Implement local SQLite disk queue on edge daemon to cache candidate event envelopes during internet outages; auto-flush queue upon WAN reconnection.
+  - **Acceptance Criteria (Clears BLOCKER-09):** Disconnecting edge network for 3 minutes results in zero dropped incidents; backlog flushes without triggering duplicate alerts.
+
+- [ ] **`TSK-R1-10`**: Multi-Site Empirical Benchmark Dataset & SLA Measurement.
+  - **Dependencies:** `TSK-D6-03`
+  - **Scope:** Deploy across 2–3 pilot warehouse sites; collect 100+ annotated real footage events; measure precision, recall, and end-to-end latency.
+  - **Acceptance Criteria (Clears BLOCKER-10):** Labeled empirical evaluation achieves Precision ≥ 90.0%, Recall ≥ 90.0%, and p95 latency ≤ 3.5s.
