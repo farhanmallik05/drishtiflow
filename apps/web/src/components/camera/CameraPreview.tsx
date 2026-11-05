@@ -64,8 +64,9 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
   }, [sourceType]);
 
   // Simulated person movement trajectory across warehouse bay
+  // Disabled when viewing uploaded video — no animation overlays on real footage.
   useEffect(() => {
-    if (!isSimulatingPerson) return;
+    if (!isSimulatingPerson || uploadedVideoPath) return;
     const interval = setInterval(() => {
       setPersonPos((prev) => {
         let nextX = prev.x + 0.015;
@@ -74,24 +75,28 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       });
     }, 150);
     return () => clearInterval(interval);
-  }, [isSimulatingPerson]);
+  }, [isSimulatingPerson, uploadedVideoPath]);
 
-  // Computed bounding box for the person
-  const detectedBoxes = [
-    {
-      x_min: personPos.x,
-      y_min: personPos.y - 0.25,
-      x_max: personPos.x + 0.12,
-      y_max: personPos.y + 0.05,
-      label: "person (0.89)",
-    },
-  ];
+  // Computed bounding box for the person — empty when viewing uploaded video
+  const detectedBoxes = uploadedVideoPath
+    ? []
+    : [
+        {
+          x_min: personPos.x,
+          y_min: personPos.y - 0.25,
+          x_max: personPos.x + 0.12,
+          y_max: personPos.y + 0.05,
+          label: "person (0.89)",
+        },
+      ];
 
   // Point in polygon evaluation & 1.5s persistent debounce
+  // Disabled when viewing uploaded video — no zone alarm overlays on real footage.
   const dwellCounterRef = useRef(0);
   const hasTriggeredRef = useRef(false);
 
   useEffect(() => {
+    if (uploadedVideoPath) return;
     const feet: Point = {
       x: (detectedBoxes[0].x_min + detectedBoxes[0].x_max) / 2,
       y: detectedBoxes[0].y_max,
@@ -113,7 +118,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       hasTriggeredRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personPos, zonePoints]);
+  }, [personPos, zonePoints, uploadedVideoPath]);
 
   const emitCandidateEvent = async () => {
     let evidenceFrame: string | null = null;
@@ -301,7 +306,8 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
           )}
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons — hidden when viewing uploaded video */}
+        {!uploadedVideoPath && (
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSourceType(sourceType === "sample" ? "webcam" : "sample")}
@@ -339,6 +345,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
+        )}
       </div>
 
       {/* Video Upload Section */}
@@ -451,14 +458,16 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
           </div>
         )}
 
-        {/* Interactive Zone Canvas Layer */}
-        <ZoneCanvas
-          zonePoints={zonePoints}
-          onZoneChange={setZonePoints}
-          isDrawing={isDrawing}
-          detectedBoxes={detectedBoxes}
-          isAlarming={isAlarming}
-        />
+        {/* Interactive Zone Canvas Layer — hidden when viewing uploaded video */}
+        {!uploadedVideoPath && (
+          <ZoneCanvas
+            zonePoints={zonePoints}
+            onZoneChange={setZonePoints}
+            isDrawing={isDrawing}
+            detectedBoxes={detectedBoxes}
+            isAlarming={isAlarming}
+          />
+        )}
       </div>
 
       {/* Footer Instructions */}

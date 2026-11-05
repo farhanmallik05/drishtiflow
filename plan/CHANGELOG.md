@@ -68,12 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test `test_inference_performance_budget`**: pins `torch` to 1 thread and uses real video frames so the measurement is stable under shared pytest CPU load (isolated dedicated-CPU runs hit 27.5 FPS, exceeding the 20 FPS PRD budget).
 - **Missing `python-multipart` dependency (`requirements.txt`)**:
   - `UploadFile = File(...)` in `POST /api/v1/shoplifting/upload-video` requires `python-multipart` for form parsing. Without it, the API crashes on startup with `RuntimeError: Form data requires "python-multipart" to be installed`. Added `python-multipart>=0.0.32` to `services/api/requirements.txt`.
-- **Removed animated person figure from Camera Preview (`CameraPreview.tsx`)**:
-  - Removed the orange animated stick figure ("PERSON") that was walking across the warehouse simulation canvas — it looked like a low-quality animation.
-  - When an uploaded video exists (`uploadedVideoPath`), the viewport now plays the actual video via `GET /api/v1/shoplifting/videos/{filename}` instead of showing the simulation.
-  - The warehouse simulation background remains (without the animated person) when no video is uploaded.
-- **Added `GET /api/v1/shoplifting/videos/{filename}` endpoint (`shoplifting.py`)**:
-  - Serves uploaded MP4 video files from `assets/videos/` for frontend playback, with path traversal protection.
+- **Removed animated person figure and zone box from Camera Preview when viewing uploaded video (`CameraPreview.tsx`)**:
+  - Disabled the animated stick figure person simulation when `uploadedVideoPath` is set — no more orange walking figure or moving bounding box on real footage.
+  - Disabled dwell detection / zone alarm when viewing uploaded video — no more "IN ZONE" badge or red polygon overlay on real video.
+  - Hidden zone drawing controls (Draw Zone, Clear Zone, Reset) when viewing uploaded video — no zone selection needed for pre-recorded footage.
+  - The viewport now plays the uploaded video cleanly via `GET /api/v1/shoplifting/videos/{filename}` with no overlays.
 
 ### Verified
 - `pytest services/api/tests/ services/edge-agent/tests/ -q`: **48/48 passed** in 17.50s.
