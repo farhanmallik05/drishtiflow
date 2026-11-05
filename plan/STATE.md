@@ -19,7 +19,7 @@
 | **Milestone R1 Backlog** | 10 Blocker Clearance Tasks defined (`TSK-R1-01` to `10`) | Clear 10 PRD Release Blockers |
 | **Overall Progress** | 100% of R0 Prototype Scope; R1 Gates Established | 100% of R0 Scope |
 | **Monorepo Scaffold** | Complete (`apps/web`, `services/api`, `services/edge-agent`, `packages/*`) | Complete |
-| **Workflow Compiler** | Fully operational (Hindi/Hinglish/English) + Versioning & Activation Check | Strict schema output & needs_review |
+| **Workflow Compiler** | Fully operational on Groq (openai/gpt-oss-120b) + Gemini fallback + Versioning | Strict schema output & needs_review |
 | **Edge Vision & Zone** | Interactive polygon canvas + ray-casting PIP + 1.5s dwell + Evidence frame | Zone trigger on human presence |
 | **Context Verifier** | 5-state decision engine + deterministic mock fallback | Multi-state VLM with safe degradation |
 | **Action Engine** | Policy cooldown + camera-scoped rate limit + WhatsApp/Vapi adapters | Idempotent alerts without duplicates |

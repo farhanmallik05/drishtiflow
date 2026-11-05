@@ -14,12 +14,13 @@ class Settings:
 
     # AI Providers (Google Gemini / Groq / xAI)
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
-    WORKFLOW_COMPILER_PROVIDER: str = os.getenv("WORKFLOW_COMPILER_PROVIDER", "gemini")
-    WORKFLOW_COMPILER_API_KEY: str = os.getenv("WORKFLOW_COMPILER_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    WORKFLOW_COMPILER_PROVIDER: str = os.getenv("WORKFLOW_COMPILER_PROVIDER", "groq" if os.getenv("GROQ_API_KEY") else "gemini")
+    WORKFLOW_COMPILER_API_KEY: str = os.getenv("WORKFLOW_COMPILER_API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
     VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini" if os.getenv("GOOGLE_API_KEY") or os.getenv("VISION_API_KEY") else "mock")
     VISION_API_KEY: str = os.getenv("VISION_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     XAI_API_KEY: str = os.getenv("XAI_API_KEY", "")
 
     # Notification Providers

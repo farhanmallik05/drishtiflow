@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.9] - 2026-11-05 (Live Groq Cloud Compiler Activation)
+
+### Added & Changed
+- **Live Groq API Key Verification & Integration (`services/api/app/config.py` & `.env`)**:
+  - Validated and activated user-supplied Groq API key (`gsk_qHA0ew...`).
+  - Successfully connected `openai/gpt-oss-120b` and `qwen/qwen3.8-27b` on Groq Cloud API (`https://api.groq.com/openai/v1/chat/completions`).
+  - Configured `WORKFLOW_COMPILER_PROVIDER=groq` with `openai/gpt-oss-120b` for sub-second vernacular rule compilation.
+- **Workflow Compiler Service (`services/api/app/services/compiler.py`)**:
+  - Enhanced compiler to prioritize ultra-fast Groq LLM inference, with automatic fallback to Google Gemini (`gemini-3-flash-preview`) and the deterministic regex engine.
+  - Verified live compilation of Hindi/Hinglish requests into schema-valid `WorkflowDefinition` models. All 35 tests passing cleanly.
+
+---
+
 ## [0.1.0-alpha.8] - 2026-11-05 (Live Google Gemini Cloud AI Integration & Blocker 4 Clearance)
 
 ### Added & Changed

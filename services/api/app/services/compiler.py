@@ -141,8 +141,33 @@ def rule_based_compile(prompt: str, camera_id: Optional[str] = None, zone_id: Op
 
 async def compile_prompt(prompt: str, camera_id: Optional[str] = None, zone_id: Optional[str] = None) -> WorkflowDefinition:
     """Compile natural language into schema-valid workflow definition."""
-    # 1. Google Gemini Cloud LLM Compiler
-    if settings.WORKFLOW_COMPILER_PROVIDER == "gemini" and (settings.WORKFLOW_COMPILER_API_KEY or settings.GOOGLE_API_KEY):
+    # 1. Groq High-Speed Cloud Compiler
+    groq_key = settings.GROQ_API_KEY or (settings.WORKFLOW_COMPILER_API_KEY if settings.WORKFLOW_COMPILER_PROVIDER == "groq" else "")
+    if groq_key and (settings.WORKFLOW_COMPILER_PROVIDER == "groq" or not settings.GOOGLE_API_KEY):
+        try:
+            groq_model = settings.GROQ_MODEL or "openai/gpt-oss-120b"
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {groq_key}"},
+                    json={
+                        "model": groq_model,
+                        "messages": [
+                            {"role": "system", "content": COMPILER_SYSTEM_PROMPT},
+                            {"role": "user", "content": f"Compile into DrishtiFlow Workflow JSON conforming to schema:\nPrompt: {prompt}"}
+                        ],
+                        "response_format": {"type": "json_object"}
+                    }
+                )
+                if res.status_code == 200:
+                    data = res.json()["choices"][0]["message"]["content"]
+                    parsed = json.loads(data)
+                    return WorkflowDefinition.model_validate(parsed)
+        except Exception:
+            pass # degrade to Gemini or rule-based engine
+
+    # 2. Google Gemini Cloud LLM Compiler
+    if (settings.WORKFLOW_COMPILER_PROVIDER == "gemini" or settings.GOOGLE_API_KEY) and (settings.WORKFLOW_COMPILER_API_KEY or settings.GOOGLE_API_KEY):
         api_key = settings.WORKFLOW_COMPILER_API_KEY or settings.GOOGLE_API_KEY
         model_name = settings.GEMINI_MODEL or "gemini-3-flash-preview"
         try:
@@ -166,29 +191,6 @@ async def compile_prompt(prompt: str, camera_id: Optional[str] = None, zone_id: 
                     return WorkflowDefinition.model_validate(parsed)
         except Exception:
             pass # degrade safely to robust rule-based engine
-
-    # 2. Groq LLaMA 3.1 70B Cloud Compiler
-    if settings.WORKFLOW_COMPILER_API_KEY and settings.WORKFLOW_COMPILER_PROVIDER == "groq":
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {settings.WORKFLOW_COMPILER_API_KEY}"},
-                    json={
-                        "model": "llama-3.1-70b-versatile",
-                        "messages": [
-                            {"role": "system", "content": COMPILER_SYSTEM_PROMPT},
-                            {"role": "user", "content": f"Compile into DrishtiFlow Workflow JSON: {prompt}"}
-                        ],
-                        "response_format": {"type": "json_object"}
-                    }
-                )
-                if res.status_code == 200:
-                    data = res.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(data)
-                    return WorkflowDefinition.model_validate(parsed)
-        except Exception:
-            pass # degrade to robust rule-based engine
 
     # 3. Deterministic Vernacular Compiler Fallback
     return rule_based_compile(prompt, camera_id=camera_id, zone_id=zone_id)
