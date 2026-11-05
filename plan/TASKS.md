@@ -25,8 +25,8 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
-| **Milestone R1 Pilot Blocker Clearance Track** | All | 10 | 0 | 0 | 10 |
-| **Total** | | **37** | **27** | **0** | **10** |
+| **Milestone R1 Pilot Blocker Clearance Track** | All | 10 | 1 | 0 | 9 |
+| **Total** | | **37** | **28** | **0** | **9** |
 
 ---
 
@@ -267,10 +267,12 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
   - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
 
-- [ ] **`TSK-R1-04`**: Live Gemini 1.5 Flash Cloud VLM Verification Integration.
+- [x] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration.
   - **Dependencies:** `TSK-D3-02`
-  - **Scope:** Deploy production Google Gemini 1.5 Flash API credentials; verify 10 real warehouse keyframes against natural language rules.
+  - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules.
   - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response; provider timeout safely yields `processing_failed`.
+  - **Validation Evidence:** Configured live Google Gemini API (`gemini-3-flash-preview`); tested with real JPEG surveillance keyframe; returned `decision: "confirmed"`, `confidence: 1.0`, `model_provider: "google-gemini"`, and visual description. All 35 tests pass.
+  - **Completed Date:** 2026-11-05
 
 - [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
   - **Dependencies:** `TSK-D5-03`

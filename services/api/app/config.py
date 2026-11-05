@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env file from project root or current working directory
+load_dotenv()
 
 class Settings:
     APP_ENV: str = os.getenv("APP_ENV", "development")
@@ -8,12 +12,15 @@ class Settings:
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./drishtiflow.db")
 
-    # AI Providers
+    # AI Providers (Google Gemini / Groq / xAI)
+    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     WORKFLOW_COMPILER_PROVIDER: str = os.getenv("WORKFLOW_COMPILER_PROVIDER", "gemini")
-    WORKFLOW_COMPILER_API_KEY: str = os.getenv("WORKFLOW_COMPILER_API_KEY", "")
-    VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "mock") # default to 'mock' for safe demo
-    VISION_API_KEY: str = os.getenv("VISION_API_KEY", "")
+    WORKFLOW_COMPILER_API_KEY: str = os.getenv("WORKFLOW_COMPILER_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini" if os.getenv("GOOGLE_API_KEY") or os.getenv("VISION_API_KEY") else "mock")
+    VISION_API_KEY: str = os.getenv("VISION_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    XAI_API_KEY: str = os.getenv("XAI_API_KEY", "")
 
     # Notification Providers
     VAPI_API_KEY: str = os.getenv("VAPI_API_KEY", "")

@@ -141,8 +141,33 @@ def rule_based_compile(prompt: str, camera_id: Optional[str] = None, zone_id: Op
 
 async def compile_prompt(prompt: str, camera_id: Optional[str] = None, zone_id: Optional[str] = None) -> WorkflowDefinition:
     """Compile natural language into schema-valid workflow definition."""
-    # If API key configured and LLM enabled, we could query Gemini or Groq.
-    # Otherwise fallback seamlessly to deterministic compiler engine.
+    # 1. Google Gemini Cloud LLM Compiler
+    if settings.WORKFLOW_COMPILER_PROVIDER == "gemini" and (settings.WORKFLOW_COMPILER_API_KEY or settings.GOOGLE_API_KEY):
+        api_key = settings.WORKFLOW_COMPILER_API_KEY or settings.GOOGLE_API_KEY
+        model_name = settings.GEMINI_MODEL or "gemini-3-flash-preview"
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {"text": f"{COMPILER_SYSTEM_PROMPT}\n\nCompile into DrishtiFlow Workflow JSON conforming to schema:\nPrompt: {prompt}"}
+                    ]
+                }],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "temperature": 0.1
+                }
+            }
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(url, json=payload)
+                if res.status_code == 200:
+                    data = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed = json.loads(data)
+                    return WorkflowDefinition.model_validate(parsed)
+        except Exception:
+            pass # degrade safely to robust rule-based engine
+
+    # 2. Groq LLaMA 3.1 70B Cloud Compiler
     if settings.WORKFLOW_COMPILER_API_KEY and settings.WORKFLOW_COMPILER_PROVIDER == "groq":
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -165,5 +190,6 @@ async def compile_prompt(prompt: str, camera_id: Optional[str] = None, zone_id: 
         except Exception:
             pass # degrade to robust rule-based engine
 
+    # 3. Deterministic Vernacular Compiler Fallback
     return rule_based_compile(prompt, camera_id=camera_id, zone_id=zone_id)
 

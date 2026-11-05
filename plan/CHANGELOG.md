@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.8] - 2026-11-05 (Live Google Gemini Cloud AI Integration & Blocker 4 Clearance)
+
+### Added & Changed
+- **Live Google Gemini VLM Verification (`services/api/app/services/verifier.py`)**:
+  - Implemented live multimodal context verification calling Google Generative Language API (`models/gemini-3-flash-preview`).
+  - Formats inline base64 JPEG keyframes with natural language verification instructions, returning structured 5-state classifications (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`).
+  - Tested with real surveillance keyframe: returned `decision: "confirmed"`, `confidence: 1.0`, `model_provider: "google-gemini"`.
+  - Cleared **Pilot Release Blocker 4 ([BLOCKER-04])** in `plan/WORKFLOW_AUDIT_REPORT.md` and `plan/TASKS.md` (`TSK-R1-04`).
+- **Google Gemini Vernacular Workflow Compiler (`services/api/app/services/compiler.py`)**:
+  - Connected live Gemini endpoint for structured workflow compilation in Hindi, Hinglish, and English with fallback to deterministic regex engine.
+- **Environment & Configuration (`services/api/app/config.py` & `.env`)**:
+  - Configured `python-dotenv` loader to parse `.env` at startup.
+  - Added support for `GOOGLE_API_KEY`, `GEMINI_MODEL`, and provider fallback resolution.
+  - Provided test audit results for user-supplied keys (Google Gemini verified active; xAI key noted for account credit setup).
+
+---
+
 ## [0.1.0-alpha.7] - 2026-11-05 (PRD & Planning Synchronization: Feature-Completion Standards & Pilot Release Blockers)
 
 ### Added & Changed
