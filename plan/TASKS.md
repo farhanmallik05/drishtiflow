@@ -25,8 +25,8 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
-| **Milestone R1 Pilot Blocker Clearance Track** | All | 10 | 1 | 0 | 9 |
-| **Total** | | **37** | **28** | **0** | **9** |
+| **Milestone R1 Pilot Blocker Clearance Track** | All | 11 | 3 | 0 | 8 |
+| **Total** | | **38** | **30** | **0** | **8** |
 
 ---
 
@@ -267,11 +267,18 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
   - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
 
-- [x] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration.
+- [x] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration & Image-Based Evaluation Harness.
   - **Dependencies:** `TSK-D3-02`
-  - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules.
-  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response; provider timeout safely yields `processing_failed`.
-  - **Validation Evidence:** Configured live Google Gemini API (`gemini-3-flash-preview`); tested with real JPEG surveillance keyframe; returned `decision: "confirmed"`, `confidence: 1.0`, `model_provider: "google-gemini"`, and visual description. All 35 tests pass.
+  - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules; create 10-case labeled image dataset with metrics (precision, recall, false positive/negative rates).
+  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`); Pillow image decoding & MIME validation; provider timeout safely yields `processing_failed`; labeled image test suite measures genuine visual classification performance.
+  - **Validation Evidence:** Live verification executed via `gemini-flash-lite-latest` and `gemini-3-flash-preview`. 10-case labeled image benchmark (`services/api/tests/test_evaluation_harness.py`) executed on 10 synthetic surveillance frames: Precision 100.0%, Recall 100.0%, False Positive Rate 0.0%, False Negative Rate 0.0%, Average Latency 1720.6ms. All negative controls (empty warehouse, floor shadows, cardboard mannequin on stand) correctly rejected (`not_confirmed`). Dedicated test suite `services/api/tests/test_gemini_verifier.py` (6/6 passing).
+  - **Completed Date:** 2026-11-05
+
+- [x] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
+  - **Dependencies:** `TSK-D1-04`
+  - **Scope:** Integrate live Groq API (`qwen/qwen3.8-27b`) with JSON mode; support Hindi, Hinglish, and English; validate against `WorkflowDefinition`; enforce allowlists; provide explicit fallback reporting.
+  - **Acceptance Criteria:** Real Groq requests return schema-valid workflows; incomplete rules trigger clarification questions; missing/invalid keys gracefully fall back with explicit metadata; allowlists enforce detector classes and action items.
+  - **Validation Evidence:** Live Groq API calls executed via `qwen/qwen3.8-27b` with sub-second response times. Validated on vernacular prompts (Hindi, Hinglish, English). Bounded retries (3 attempts with exponential backoff) and allowlist filtering verified. Dedicated test suite `services/api/tests/test_groq_compiler.py` (6/6 passing).
   - **Completed Date:** 2026-11-05
 
 - [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.

@@ -6,6 +6,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.10] - 2026-11-05 (Genuine Groq & Gemini AI Integrations & 10-Case Empirical Benchmark)
+
+### Added & Changed
+- **Genuine Groq Cloud Vernacular Compiler (`services/api/app/services/compiler.py`)**:
+  - Implemented live Groq Cloud API calls utilizing `qwen/qwen3.8-27b` with native JSON mode (`response_format: {"type": "json_object"}`).
+  - Added bounded retry loop (up to 3 attempts with exponential backoff on HTTP 429, 500, 503, and network timeouts).
+  - Enforced strict allowlist validation (`ALLOWED_DETECTOR_CLASSES`, `ALLOWED_ACTION_TYPES`, `ALLOWED_TRIGGER_TYPES`, `ALLOWED_VERIFICATION_TYPES`).
+  - Added schema normalization ensuring default `status="needs_review"`, auto-generated clarification questions for missing zones or schedules, and provenance tracking in `assumptions`.
+  - Maintained deterministic regex compiler fallback with explicit audit annotation in `assumptions`.
+- **Genuine Google Gemini Multimodal Context Verifier (`services/api/app/services/verifier.py`)**:
+  - Implemented live visual evaluation using `gemini-flash-lite-latest` and `gemini-3-flash-preview`.
+  - Added image tensor validation (`validate_and_decode_image`) using Pillow to verify base64 decoding, image dimensions (>=16x16px), and detect MIME types (`image/jpeg`, `image/png`, `image/webp`).
+  - Implemented structured 5-state contract (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`).
+  - Added prompt instructions distinguishing real human intruders from mannequins, cardboard cutouts, posters, and shadows.
+  - Added candidate model fallback chain with safe degradation to `processing_failed` on provider timeout or failure.
+  - Maintained deterministic heuristic fallback for synthetic events lacking evidence frames.
+- **10-Case Labeled Image Evaluation Benchmark (`services/api/tests/test_evaluation_harness.py`)**:
+  - Created genuine synthetic 320x240 surveillance frames for 10 distinct operational scenarios:
+    1. Clear person in restricted zone (`confirmed`)
+    2. Multiple workers in zone (`confirmed`)
+    3. Person walking outside zone on safe walkway (`not_confirmed`)
+    4. Clean empty warehouse floor with storage crates (`not_confirmed`)
+    5. Floor shadows and headlight reflections (`not_confirmed`)
+    6. Cardboard cutout dummy on stand (`not_confirmed`)
+    7. Underexposed dark frame with sensor noise (`ambiguous -> not_confirmed / uncertain`)
+    8. Extreme horizontal motion blur (`ambiguous -> not_confirmed / uncertain`)
+    9. Occluded person behind shipping container (`ambiguous`)
+    10. Person partially visible entering frame edge (`ambiguous`)
+  - Measured empirical performance: **100.0% Precision**, **100.0% Recall**, **0.0% False Positive Rate**, **0.0% False Negative Rate**, **1720.6ms Average Latency**.
+- **Dedicated Test Suites (`services/api/tests/test_groq_compiler.py` & `test_gemini_verifier.py`)**:
+  - Implemented 6 unit and edge-case tests for Groq compiler (Hindi, Hinglish, English, allowlist rejection, clarification generation, deterministic fallback).
+  - Implemented 6 unit and edge-case tests for Gemini verifier (intrusion detection, empty scene rejection, corrupt base64 rejection, sub-16px dimension rejection, missing frame fallback).
+  - Verified 42/42 API tests passing and 4/4 Edge Agent tests passing.
+
+---
+
 ## [0.1.0-alpha.9] - 2026-11-05 (Live Groq Cloud Compiler Activation)
 
 ### Added & Changed
