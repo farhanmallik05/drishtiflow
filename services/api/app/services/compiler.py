@@ -166,3 +166,4 @@ async def compile_prompt(prompt: str, camera_id: Optional[str] = None, zone_id: 
             pass # degrade to robust rule-based engine
 
     return rule_based_compile(prompt, camera_id=camera_id, zone_id=zone_id)
+

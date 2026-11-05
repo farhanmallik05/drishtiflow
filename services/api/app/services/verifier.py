@@ -81,3 +81,4 @@ async def verify_context(
             model_provider=settings.VISION_PROVIDER,
             model_version="unknown"
         )
+

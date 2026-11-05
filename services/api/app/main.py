@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import init_db
-from .routers import health, workflows, cameras, events, incidents, actions
+from .routers import health, workflows, cameras, events, incidents, actions, shoplifting
 
 # Initialize database tables on startup
 init_db()
@@ -31,6 +31,7 @@ app.include_router(cameras.router)
 app.include_router(events.router)
 app.include_router(incidents.router)
 app.include_router(actions.router)
+app.include_router(shoplifting.router)
 
 @app.get("/")
 def root():
@@ -44,3 +45,4 @@ def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("services.api.app.main:app", host="0.0.0.0", port=8000, reload=True)
+

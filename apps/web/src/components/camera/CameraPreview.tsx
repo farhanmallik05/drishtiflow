@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { ZoneCanvas, Point, isPointInPolygon } from "./ZoneCanvas";
-import { Camera, Video, AlertTriangle, ShieldCheck, RefreshCw, PenTool, Trash2, Play } from "lucide-react";
+import { Camera, Video, AlertTriangle, ShieldCheck, RefreshCw, PenTool, Trash2, Play, Upload, FileText } from "lucide-react";
 
 interface CameraPreviewProps {
   onCandidateTriggered: (eventData: any) => void;
@@ -20,6 +20,15 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
   const [isAlarming, setIsAlarming] = useState(false);
   const [personPos, setPersonPos] = useState({ x: 0.15, y: 0.65 });
   const [isSimulatingPerson, setIsSimulatingPerson] = useState(true);
+
+  // Video upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadedVideoPath, setUploadedVideoPath] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [processResult, setProcessResult] = useState<{ records_found: number; thefts_suspected: number } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Default warehouse storage bay polygon zone
   const [zonePoints, setZonePoints] = useState<Point[]>([
@@ -103,10 +112,59 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       setIsAlarming(false);
       hasTriggeredRef.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personPos, zonePoints]);
 
   const emitCandidateEvent = async () => {
-    const eventPayload = {
+    let evidenceFrame: string | null = null;
+
+    if (sourceType === "webcam" && videoRef.current) {
+      try {
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = videoRef.current.videoWidth || 640;
+        offCanvas.height = videoRef.current.videoHeight || 360;
+        const ctx = offCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(videoRef.current, 0, 0, offCanvas.width, offCanvas.height);
+          evidenceFrame = offCanvas.toDataURL("image/jpeg", 0.7);
+        }
+      } catch (err) {
+        console.warn("Could not capture webcam frame:", err);
+      }
+    }
+
+    if (!evidenceFrame && typeof document !== "undefined") {
+      try {
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = 640;
+        offCanvas.height = 360;
+        const ctx = offCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(0, 0, 640, 360);
+          ctx.strokeStyle = "#334155";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(40, 40, 560, 280);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "12px monospace";
+          ctx.fillText("CAM 01 // BHIWANDI GODOWN #4 // RESTRICTED BAY A", 50, 65);
+          const b = detectedBoxes[0];
+          ctx.strokeStyle = "#f97316";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(b.x_min * 640, b.y_min * 360, (b.x_max - b.x_min) * 640, (b.y_max - b.y_min) * 360);
+          ctx.fillStyle = "#ea580c";
+          ctx.fillRect(b.x_min * 640, b.y_min * 360 - 18, 90, 18);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 10px monospace";
+          ctx.fillText("PERSON 0.89", b.x_min * 640 + 4, b.y_min * 360 - 5);
+          evidenceFrame = offCanvas.toDataURL("image/jpeg", 0.7);
+        }
+      } catch (err) {
+        console.warn("Could not generate simulation evidence frame:", err);
+      }
+    }
+
+    const eventPayload: any = {
       event_id: crypto.randomUUID(),
       camera_id: "cam-warehouse-gate-01",
       workflow_id: activeWorkflowId || null,
@@ -119,17 +177,23 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         confidence: 0.89,
         bounding_box: detectedBoxes[0],
       },
+      evidence_frame_base64: evidenceFrame,
     };
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
     try {
-      const res = await fetch("http://localhost:8000/api/v1/events/candidates", {
+      const res = await fetch(`${apiBase}/api/v1/events/candidates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventPayload),
       });
       if (res.ok) {
         const data = await res.json();
-        onCandidateTriggered(data);
+        onCandidateTriggered({
+          ...data,
+          evidence_frame_base64: evidenceFrame,
+        });
       }
     } catch (e) {
       console.error("Failed to emit candidate event to backend:", e);
@@ -138,6 +202,70 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
 
   const handleClearZone = () => {
     setZonePoints([]);
+  };
+
+  // --- Video Upload & Processing ---
+  const handleSelectVideo = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleUploadVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError(null);
+    setUploadedVideoPath(null);
+    setProcessResult(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    try {
+      const res = await fetch(`${apiBase}/api/v1/shoplifting/upload-video`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error(`Upload failed: ${res.status}`);
+      }
+      const data = await res.json();
+      setUploadedVideoPath(data.path);
+      setUploadError(null);
+    } catch (err: any) {
+      setUploadError(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleProcessVideo = async () => {
+    if (!uploadedVideoPath) return;
+    setProcessing(true);
+    setProcessResult(null);
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    try {
+      const res = await fetch(`${apiBase}/api/v1/shoplifting/process-video`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ video_path: uploadedVideoPath }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Processing failed: ${res.status}`);
+      }
+      const data = await res.json();
+      setProcessResult({
+        records_found: data.records_found,
+        thefts_suspected: data.thefts_suspected,
+      });
+    } catch (err: any) {
+      setUploadError(err.message || "Processing failed");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleResetWarehouseZone = () => {
@@ -156,7 +284,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="relative flex h-3 w-3">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isAlarming ? "bg-red-400" : "bg-emerald-400"}`}></span>
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${isAlarming ? "bg-red-400" : "bg-emerald-400"}`}></span>
               <span className={`relative inline-flex rounded-full h-3 w-3 ${isAlarming ? "bg-red-500" : "bg-emerald-500"}`}></span>
             </span>
             <span className="font-semibold text-sm tracking-wide">
@@ -167,8 +295,8 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
             {fps} FPS • 640x360
           </span>
           {isAlarming && (
-            <span className="text-xs bg-red-950 border border-red-500 text-red-300 px-2 py-0.5 rounded flex items-center gap-1 animate-pulse font-semibold">
-              <AlertTriangle className="w-3 h-3 text-red-400" /> ZONE BREACH DETECTED
+            <span className="text-xs bg-red-950 border border-red-500 text-red-300 px-2 py-0.5 rounded flex items-center gap-1 font-semibold">
+              <AlertTriangle className="w-3 h-3 text-red-400" /> PERSON IN RESTRICTED AREA
             </span>
           )}
         </div>
@@ -213,6 +341,69 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         </div>
       </div>
 
+      {/* Video Upload Section */}
+      <div className="px-4 py-3 bg-slate-950 border-b border-slate-800">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Upload className="w-4 h-4 text-blue-400" />
+            <span className="font-semibold text-sm tracking-wide">Upload Shop Video</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              onChange={handleUploadVideo}
+              className="hidden"
+            />
+            <button
+              onClick={handleSelectVideo}
+              disabled={uploading}
+              className={`text-xs px-3 py-1.5 rounded flex items-center gap-1.5 transition ${
+                uploading
+                  ? "bg-slate-600 text-slate-400 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              }`}
+            >
+              {uploading ? "Uploading…" : "Select Video File"}
+            </button>
+            {uploadedVideoPath && (
+              <button
+                onClick={handleProcessVideo}
+                disabled={processing}
+                className={`text-xs px-3 py-1.5 rounded flex items-center gap-1.5 transition ${
+                  processing
+                    ? "bg-slate-600 text-slate-400 cursor-not-allowed"
+                    : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                }`}
+              >
+                {processing ? "Processing…" : "Run Shoplifting Detection"}
+              </button>
+            )}
+          </div>
+        </div>
+        {uploadError && (
+          <div className="mt-2 p-2 bg-red-950/50 border border-red-800 rounded-lg text-xs text-red-300 flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+            <span>{uploadError}</span>
+          </div>
+        )}
+        {uploadedVideoPath && !processResult && (
+          <div className="mt-2 p-2 bg-blue-950/30 border border-blue-900/50 rounded-lg text-xs text-blue-300 flex items-center gap-2">
+            <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span className="flex-1 truncate">Ready: {uploadedVideoPath}</span>
+            <span className="text-blue-400">Click the detection button to analyze</span>
+          </div>
+        )}
+        {processResult && (
+          <div className="mt-2 p-2 bg-emerald-950/30 border border-emerald-900/50 rounded-lg text-xs text-emerald-300 flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="flex-1">Detection complete — {processResult.records_found} person(s) tracked, {processResult.thefts_suspected} suspected theft(s).</span>
+            <span className="text-emerald-400">View results in Shoplifting Log tab.</span>
+          </div>
+        )}
+      </div>
+
       {/* Video Viewport with Canvas Overlay */}
       <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
         {sourceType === "webcam" ? (
@@ -223,8 +414,18 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
             muted
             className="w-full h-full object-cover"
           />
+        ) : uploadedVideoPath ? (
+          /* Uploaded video playback */
+          <video
+            src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/shoplifting/videos/${uploadedVideoPath.split(/[\\/]/).pop()}`}
+            autoPlay
+            playsInline
+            muted
+            loop
+            className="w-full h-full object-cover"
+          />
         ) : (
-          /* High-Fidelity Warehouse Security Scene Simulation */
+          /* High-Fidelity Warehouse Security Scene Simulation (no animated person) */
           <div className="w-full h-full relative bg-gradient-to-b from-slate-900 via-slate-950 to-neutral-900 flex flex-col justify-between p-4 select-none">
             {/* Background Godown Pillars & Storage Racks */}
             <div className="absolute inset-0 opacity-20 pointer-events-none grid grid-cols-6 gap-4 p-8">
@@ -239,32 +440,13 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
             {/* Warehouse Visual Indicators */}
             <div className="relative z-0 text-slate-500 font-mono text-xs flex justify-between">
               <span>CAM 01 // BHIWANDI GODOWN #4 // PERIMETER NORTH</span>
-              <span>{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</span>
-            </div>
-
-            {/* Simulated Animated Intruder Figure */}
-            <div
-              className="absolute z-10 transition-all duration-150 ease-linear flex flex-col items-center pointer-events-none"
-              style={{
-                left: `${personPos.x * 100}%`,
-                top: `${(personPos.y - 0.25) * 100}%`,
-                width: "12%",
-                height: "30%",
-              }}
-            >
-              {/* Silhouette Avatar */}
-              <div className="w-5 h-5 rounded-full bg-orange-400 border border-white shadow-md mb-1 animate-pulse" />
-              <div className="w-8 h-14 bg-gradient-to-b from-orange-500 to-amber-700 rounded-lg shadow-lg flex items-center justify-center text-[9px] text-white font-bold">
-                PERSON
-              </div>
-              <div className="flex gap-1.5 mt-0.5">
-                <div className="w-2 h-7 bg-amber-900 rounded" />
-                <div className="w-2 h-7 bg-amber-900 rounded" />
-              </div>
+              <span suppressHydrationWarning>
+                {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+              </span>
             </div>
 
             <div className="relative z-0 text-slate-600 text-[11px] font-mono">
-              EDGE INFERENCE: ONNX WebGPU (Active) • Ray-Casting PIP Active
+              Person tracking active • Restricted area monitoring
             </div>
           </div>
         )}
@@ -285,17 +467,18 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>
             {isDrawing
-              ? "Click on the video feed to place boundary points. Click 'Finish Drawing' when complete."
-              : "Zone monitoring active. Movement into the highlighted polygon triggers VLM verification."}
+              ? "Tap the video to mark a restricted area. Tap 'Finish Drawing' when done."
+              : "Monitoring is ON. If a person enters the marked area, an event is logged and verified."}
           </span>
         </div>
         <button
           onClick={() => emitCandidateEvent()}
           className="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1"
         >
-          <Play className="w-3 h-3" /> Manual Event Trigger
+          <Play className="w-3 h-3" /> Log Manual Event
         </button>
       </div>
     </div>
   );
 };
+

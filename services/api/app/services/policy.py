@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import zoneinfo
 from typing import Tuple, Optional
 from ..schemas.workflow import WorkflowDefinition, ActionItem
@@ -85,12 +85,15 @@ class PolicyEngine:
             except Exception:
                 pass
 
-        # 4. Hourly Rate Limit Check
+        # 4. Hourly Rate Limit Check (scoped to camera)
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
         cursor.execute(
             """
-            SELECT COUNT(*) as count FROM actions
-            WHERE status in ('sent', 'delivered') AND created_at >= datetime('now', '-1 hour')
-            """
+            SELECT COUNT(*) as count FROM actions a
+            JOIN incidents i ON a.incident_id = i.id
+            WHERE i.camera_id = ? AND a.status in ('sent', 'delivered') AND a.created_at >= ?
+            """,
+            (camera_id, cutoff)
         )
         actions_last_hour = cursor.fetchone()["count"]
         if actions_last_hour >= max_per_hour:
@@ -107,3 +110,4 @@ class PolicyEngine:
                     permitted_actions.append(act.type)
 
         return True, "Policy approved for execution.", permitted_actions
+

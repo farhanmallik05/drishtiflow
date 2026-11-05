@@ -20,6 +20,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   const [enableWhatsApp, setEnableWhatsApp] = useState(true);
   const [enableVoice, setEnableVoice] = useState(false);
   const [status, setStatus] = useState<"draft" | "active" | "paused">("draft");
+  const [activationError, setActivationError] = useState<string | null>(null);
 
   if (!workflow) {
     return (
@@ -34,12 +35,38 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   }
 
   const handleActivateToggle = async () => {
+    setActivationError(null);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    const wfId = workflow.id || "wf-demo";
+
     if (status === "active") {
+      try {
+        if (workflow.id) {
+          await fetch(`${apiBase}/api/v1/workflows/${workflow.id}/pause`, {
+            method: "POST",
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to pause workflow on server:", e);
+      }
       setStatus("paused");
-      onPause(workflow.id || "wf-demo");
+      onPause(wfId);
     } else {
-      setStatus("active");
-      onActivate(workflow.id || "wf-demo");
+      try {
+        if (workflow.id) {
+          const res = await fetch(`${apiBase}/api/v1/workflows/${workflow.id}/activate`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Server returned ${res.status}`);
+          }
+        }
+        setStatus("active");
+        onActivate(wfId);
+      } catch (e: any) {
+        setActivationError(e.message || "Failed to activate workflow");
+      }
     }
   };
 
@@ -78,6 +105,12 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
           </button>
         </div>
       </div>
+
+      {activationError && (
+        <div className="p-3 bg-red-950/50 border border-red-800 rounded-lg text-xs text-red-300">
+          {activationError}
+        </div>
+      )}
 
       {/* Visual Three-Node Flowchart */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative py-2">
@@ -243,3 +276,4 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
     </div>
   );
 };
+

@@ -33,3 +33,4 @@ def readiness_check():
         "vision_provider": settings.VISION_PROVIDER,
         "compiler_provider": settings.WORKFLOW_COMPILER_PROVIDER
     }
+

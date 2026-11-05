@@ -32,7 +32,10 @@ class CameraResponse(BaseModel):
     name: str
     source_type: str
     stream_url: Optional[str] = None
-    status: Literal['pending', 'online', 'degraded', 'offline']
+    # Tolerant of legacy rows written by older test/deployment versions whose
+    # status falls outside the pending/online/degraded/offline enum.
+    status: str
     last_heartbeat_at: Optional[str] = None
     zones: List[ZoneResponse] = []
     created_at: str
+

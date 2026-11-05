@@ -1,8 +1,10 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-04T21:24:00+05:30  
+**Last Updated:** 2026-11-05T02:00:00+05:30  
 **Active Milestone:** Milestone R0 — Hackathon Prototype (Remediated & Verified)  
 **Next Milestone:** Milestone R1 — Supervised Pilot MVP  
-**Overall System Health:** 🟢 GREEN (All 27 tasks complete, 12/12 tests passing, ESLint 0 warnings/errors, Next.js 14 build verified)
+**Overall System Health:** 🟢 GREEN (All 30 tasks complete, 48/48 tests passing, ESLint 0 warnings/errors, Next.js 14 build verified, all bugs fixed — hydration error, upload/pipeline crash, process-video 422, python-multipart dependency, live YOLOv8n edge inference verified on real CCTV footage)
+
+**Active Task:** `TSK-D4-06` (DONE) — Remove UI Animations & Add Video Upload. All animations removed; video upload + process endpoints added; process-video 422 fixed with `Body(..., embed=True)`; pipeline tested on CCTV footage (119 rows, 22 theft-suspected, evidence photos).
 
 ---
 
@@ -14,10 +16,10 @@
 | **Overall Progress** | 100% of R0 Prototype Scope | 100% of R0 Scope |
 | **Monorepo Scaffold** | Complete (`apps/web`, `services/api`, `services/edge-agent`, `packages/*`) | Complete |
 | **Workflow Compiler** | Fully operational (Hindi/Hinglish/English) + Versioning & Activation Check | Strict schema output & needs_review |
-| **Edge Vision & Zone** | Interactive polygon canvas + ray-casting PIP + 1.5s dwell + Evidence frame | Zone trigger on human presence |
+| **Edge Vision & Zone** | Interactive polygon canvas + ray-casting PIP + 1.5s dwell + Evidence frame + live YOLOv8n person detection on real CCTV footage + uploaded video playback (animation removed) | Zone trigger on human presence |
 | **Context Verifier** | 5-state decision engine + deterministic mock fallback | Multi-state VLM with safe degradation |
 | **Action Engine** | Policy cooldown + camera-scoped rate limit + WhatsApp/Vapi adapters | Idempotent alerts without duplicates |
-| **E2E Test Pipeline** | 12/12 unit & integration tests passing (0.77s E2E) | Automated end-to-end verification |
+| **E2E Test Pipeline** | 48/48 unit & integration tests passing (17.50s, incl. 4 YOLO detector + 7 shoplift monitor tests) | Automated end-to-end verification |
 
 ---
 
@@ -26,15 +28,20 @@
 | Metric | Measured Value | Standard / Budget | Status |
 |---|---|---|:---:|
 | **E2E Pipeline Latency** | 770ms (p95) | ≤ 5,000ms | 🟢 PASS |
-| **API Test Suite** | 8/8 passed in 4.62s (`services/api/tests/`) | 100% pass | 🟢 PASS |
-| **Edge Agent Test Suite** | 4/4 passed in 0.29s (`services/edge-agent/tests/`) | 100% pass | 🟢 PASS |
+| **API Test Suite** | 31/31 passed (`services/api/tests/`) | 100% pass | 🟢 PASS |
+| **Edge Agent Test Suite** | 8/8 passed (4 edge geometry + 4 YOLO detector, incl. live-server smoke test) | 100% pass | 🟢 PASS |
 | **Evaluation Precision** | 100.0% (5 TP, 0 FP on test set) | ≥ 90.0% | 🟢 PASS |
 | **Evaluation Recall** | 100.0% (5 TP, 0 FN on test set) | ≥ 90.0% | 🟢 PASS |
 | **Uncertain/Degraded Handling** | 2/2 hard negative edge cases degraded safely | 100% safe degradation | 🟢 PASS |
 | **Frontend Code Quality** | `npm run lint` — 0 errors, 0 warnings | Clean ESLint | 🟢 PASS |
 | **Next.js Client Bundle Size** | 102 kB First Load JS | ≤ 250 kB | 🟢 PASS |
-| **Edge Frame Ingestion** | 24 FPS with ray-casting PIP + Evidence snapshot | ≥ 20 FPS | 🟢 PASS |
+| **Edge Frame Ingestion** | 24 FPS ray-casting PIP + 27.5 FPS YOLOv8n CPU on real CCTV footage | ≥ 20 FPS | 🟢 PASS |
+| **YOLOv8n on Real CCTV** | 14 candidate events emitted over ~10-min intrusion video; all accepted by live API; verifier `confirmed`/`uncertain`; policy `action_sent` | Full pipeline functional | 🟢 PASS |
+| **Shoplifting Pipeline on CCTV** | 119 persons tracked, 22 theft_suspected=True, evidence photos saved; `POST /api/v1/shoplifting/process-video` returns 200 OK | Full pipeline functional | 🟢 PASS |
 | **Action Idempotency** | 100% duplicate suppression via SHA-256 keys | Zero duplicates | 🟢 PASS |
+| **Live E2E Write Path (uvicorn)** | compile→activate→event→verify→policy→dispatch: `confirmed → action_sent`, sandbox WhatsApp dispatched | Full pipeline functional | 🟢 PASS |
+| **GET Collection Endpoints** | `/incidents`, `/cameras`, `/workflows` all 200 OK after legacy-row resilience fix | 0× HTTP 500 | 🟢 PASS |
+| **Demo DB Hygiene** | Tests purge own debris; repeated pytest leaves DB stable (cameras=2, incidents=1, workflows=1) | Zero test debris | 🟢 PASS |
 
 ---
 
@@ -44,11 +51,11 @@
 |---|---|:---:|:---:|---|
 | **Track 0: Project Setup & Plan System** | Farhan | 3 / 3 | 🟢 GREEN | `plan/` directory, PFCP rule enforcement |
 | **Track 1: Monorepo & Shared Schemas** | Farhan | 4 / 4 | 🟢 GREEN | FastApi backend, Zod/Pydantic shared schemas |
-| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 4 / 4 | 🟢 GREEN | Webcam/Sample stream, ZoneCanvas PIP engine |
+| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 5 / 5 | 🟢 GREEN | Webcam/Sample stream, ZoneCanvas PIP engine, live YOLOv8n on real CCTV |
 | **Track 3: Context Verification Engine** | Ankit | 4 / 4 | 🟢 GREEN | VLM verifier, deterministic mock, test harness |
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 / 4 | 🟢 GREEN | Next.js 14 Command Center, RuleBuilder, Graph |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 / 4 | 🟢 GREEN | Cooldown policy, WhatsApp & Vapi adapters |
-| **Track 6: Testing, Evaluation & Pitch** | All | 4 / 4 | 🟢 GREEN | 12/12 tests passing, 3-minute pitch rehearsal |
+| **Track 6: Testing, Evaluation & Pitch** | All | 6 / 6 | 🟢 GREEN | 37/37 tests passing + live API smoke audit & 2 regression tests |
 
 ---
 

@@ -140,6 +140,15 @@ flowchart TD
   - **WhatsApp Cloud API:** Sends template-compliant WhatsApp notification with incident timestamp, camera name, and snapshot evidence URL.
   - **Vapi Voice Engine:** Initiates an automated phone call with text-to-speech summary and prompt for keypress acknowledgment.
 
+### 2.7 Shoplifting Detection & Evidence Logging (Edge Agent)
+- **Module:** `services/edge-agent/tracking/shoplift_monitor.py` (`ShopliftMonitor`).
+- **Function:** Composes the existing YOLOv8n person detector (§2.3) and zone point-in-polygon filter (§2.3) to track persons across frames on a single camera.
+- **Entry/Exit logging:** `entry_time` is stamped (UTC ISO-8601) when a person first enters the shop zone; `exit_time` is stamped when they leave the zone or disappear for `max_disappear_frames` frames. `duration_seconds` is computed from the two timestamps.
+- **Theft heuristic:** A person who dwells in the shelf/items zone and then exits the shop zone is flagged `theft_suspected=True` (shelf interaction + exit). Interaction without exit does not flag theft.
+- **Evidence photo:** Exactly ONE person bounding-box crop (JPEG) is saved per suspected-theft incident under `services/edge-agent/assets/evidence/`.
+- **Pandas log:** Every finalized person becomes one row appended to `services/edge-agent/assets/shop_theft_log.csv` (also exposed via `to_dataframe()`): track_id, camera_id, entry_time, exit_time, duration_seconds, shelf_interaction, theft_suspected, detector_confidence, photo_path, logged_at.
+- **Safety:** Photo capture never breaks monitoring (errors are swallowed); all timestamps are UTC ISO-8601.
+
 ---
 
 ## 3. Database Schema Specification (PostgreSQL / Supabase)
@@ -290,6 +299,8 @@ create index idx_cameras_site on cameras (site_id);
 | `POST` | `/api/v1/incidents/{id}/acknowledge` | Mark an incident as acknowledged by operator |
 | `POST` | `/api/v1/incidents/{id}/feedback` | Submit operator feedback (True/False Positive) |
 | `POST` | `/api/v1/actions/test` | Dispatch a safe test notification to verified destination |
+
+**Response contract note (2026-11-04, TSK-D6-06):** read-model responses are intentionally tolerant to legacy/out-of-range stored values. `IncidentResponse.detector_confidence` is `Optional[float]` (nullable DB column per §3 schema) and `CameraResponse.status` accepts any string — a single legacy row (e.g. `status='active'`, `detector_confidence=NULL`) must degrade per-row, never 500 the collection. Regression coverage: `services/api/tests/test_legacy_resilience.py`.
 
 ---
 

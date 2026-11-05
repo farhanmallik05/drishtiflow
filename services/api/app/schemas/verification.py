@@ -23,3 +23,4 @@ class VerificationRequest(BaseModel):
     evidence_frame_base64: Optional[str] = None
     verification_instruction: Optional[str] = None
     event_type: Optional[str] = "restricted_zone_entry"
+

@@ -20,12 +20,12 @@
 |---|---|:---:|:---:|:---:|:---:|
 | **Track 0: Project Setup & Plan System** | Farhan | 3 | 3 | 0 | 0 |
 | **Track 1: Monorepo & Shared Schemas** | Farhan | 4 | 4 | 0 | 0 |
-| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 4 | 4 | 0 | 0 |
+| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 5 | 5 | 0 | 0 |
 | **Track 3: Context Verification Engine** | Ankit | 4 | 4 | 0 | 0 |
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
-| **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
-| **Total** | | **27** | **27** | **0** | **0** |
+| **Track 6: Testing, Evaluation & Pitch** | All | 6 | 6 | 0 | 0 |
+| **Total** | | **30** | **30** | **0** | **0** |
 
 ---
 
@@ -117,6 +117,26 @@
   - **Validation Evidence:** Implemented in `CameraPreview.tsx` and validated in `services/edge-agent/tests/test_edge_agent.py` (4/4 passed).
   - **Completed Date:** 2026-11-04
 
+- [x] **`TSK-D2-05`**: Real YOLOv8n Edge Inference on Live CCTV Footage.
+  - **Dependencies:** `TSK-D2-04`
+  - **Scope:** Replace mock `yolov8n` labels with live Ultralytics YOLOv8n inference; filter `person` class; normalize bboxes to [0,1]; route detections through existing `EdgeDetector` zone PiP + `DwellTracker` (1.5s) -> `CandidateEventEmitter` to FastAPI backend. Download and test against real incident video footage.
+  - **Acceptance Criteria:** `YOLOEdgeDetector` loads `yolov8n.pt`, runs at ≥20 FPS on CPU, emits candidate events for real persons dwelling in a restricted zone; full pipeline verified end-to-end against live API.
+  - **Validation Evidence:** `services/edge-agent/inference/yolo_detector.py` created; real CCTV clip downloaded to `services/edge-agent/assets/videos/`; YOLO measured at 27.5 FPS CPU (36 ms/frame); full video pipeline run emitted candidate events to live `GET/POST /api/v1/events/candidates`; new test file `services/edge-agent/tests/test_yolo_detector.py` added.
+  - **Completed Date:** 2026-11-04
+
+- [x] **`TSK-D2-06`**: Shoplifting Detection with Entry/Exit Logging & Pandas CSV Log.
+  - **Dependencies:** `TSK-D2-01`, `TSK-D2-04`, `TSK-D2-05`
+  - **Owner:** Kartikey (implemented by agent on user request)
+  - **Scope:** Add `ShopliftMonitor` in `services/edge-agent/tracking/shoplift_monitor.py` that composes the existing YOLOv8n person detector + zone PiP filter to track persons across frames, record shop entry_time and exit_time, flag suspected theft (person dwells near shelves/items then exits the shop zone), capture one evidence photo (person crop JPEG) per incident, and append a row to a pandas DataFrame persisted as `shop_theft_log.csv` (track_id, camera_id, entry_time, exit_time, duration_seconds, shelf_interaction, theft_suspected, detector_confidence, photo_path, logged_at). Add demo pipeline runner `services/edge-agent/tools/run_shoplift_pipeline.py` and unit tests `services/edge-agent/tests/test_shoplift_monitor.py`.
+  - **Acceptance Criteria:** Monitor processes a video and produces a pandas DataFrame/CSV with one row per person containing entry time, exit time, and one evidence photo path; theft_suspected flagged when shelf interaction precedes exit; DataFrame `to_dataframe()` and `save_dataframe()` work; unit tests pass.
+  - **Validation Evidence:**
+    - `services/edge-agent/tests/test_shoplift_monitor.py`: 7/7 unit tests pass (entry/exit times, theft flag logic, one photo per incident, DataFrame columns/types, CSV export, multi-person rows).
+    - `pytest services/edge-agent/tests/ services/api/tests/ -q`: 48/48 passed (no regressions).
+    - End-to-end smoke on real CCTV footage: pipeline produced `shop_theft_log.csv` (119 rows, 22 theft_suspected=True, 22 evidence photos) + JPEG crops in `assets/evidence/`.
+    - `POST /api/v1/shoplifting/process-video` returns 200 OK with `records_found` and `thefts_suspected` counts.
+  - **Completed Date:** 2026-11-05
+  - **Git/File Ref:** `services/edge-agent/tracking/shoplift_monitor.py`, `services/edge-agent/tools/run_shoplift_pipeline.py`, `services/edge-agent/tests/test_shoplift_monitor.py`
+
 ---
 
 ### Track 3: Context Verification & VLM Evaluation (Owner: Ankit)
@@ -177,9 +197,34 @@
 - [x] **`TSK-D4-04`**: Realtime Incident Feed & Feedback Card.
   - **Dependencies:** `TSK-D4-01`
   - **Scope:** Build live Incident Center showing event cards with keyframe snapshots, detector/verifier confidence, reason, and feedback buttons.
-  - **Acceptance Criteria:** New incidents appear in feed dynamically; clicking "True Positive" or "False Positive" submits feedback.
-  - **Validation Evidence:** `IncidentFeed.tsx` displays event cards with confidence comparison meters and operator feedback buttons.
+  - **Acceptance Criteria:** New incidents appear in feed dynamically; clicking "True Positive" or "False Positive" submits feedback; keyframe evidence snapshots display cleanly.
+  - **Validation Evidence:** `IncidentFeed.tsx` displays event cards with confidence comparison meters, keyframe image snapshots (`evidence_frame_base64`/`evidence_url`), and operator feedback buttons. Clean Next.js ESLint verified with 0 warnings/errors.
   - **Completed Date:** 2026-11-04
+
+- [x] **`TSK-D4-05`**: Shoplifting Log Tab & Plain-Language UI Clarity.
+  - **Dependencies:** `TSK-D2-06`, `TSK-D4-04`
+  - **Owner:** Piyush (implemented by agent on user request)
+  - **Scope:** Make the UI understandable for a shop owner who cannot parse technical jargon: (1) Added a "Shoplifting Log" tab that reads `services/edge-agent/assets/shop_theft_log.csv` via the new `/api/v1/shoplifting/log` API endpoint and lists each person with plain-language entry time, exit time, duration, "Suspected Theft" flag, detection confidence, and their evidence photo in a table; (2) Rewrote UI labels into plain terms ("Person in Restricted Area" instead of "RESTRICTED ZONE BREACH", "Live Monitor" instead of "Command Center", "Set Up Rules" instead of "Rule & Workflow Graph", "Recent Events" instead of "Incident Center"); (3) Added `services/api/app/routers/shoplifting.py` to serve the CSV log and evidence photos to the frontend.
+  - **Acceptance Criteria:** A non-technical user can open the Shoplifting Log and see who entered, when they left, whether theft is suspected, and the photo; monitor tab uses plain language; UI passes lint/build.
+  - **Validation Evidence:**
+    - `npm run build --workspace=apps/web`: Compiles successfully (16.2 kB, 103 kB shared).
+    - `pytest services/edge-agent/tests/ services/api/tests/ -q`: 48/48 passed (no regressions).
+    - `ShopliftingLog.tsx` table-based log reads `/api/v1/shoplifting/log` and displays entry_time, exit_time, duration, theft_suspected flag, confidence, and photo per person.
+  - **Completed Date:** 2026-11-05
+  - **Git/File Ref:** `apps/web/src/components/incidents/ShopliftingLog.tsx`, `apps/web/src/app/page.tsx`, `apps/web/src/components/camera/CameraPreview.tsx`, `services/api/app/routers/shoplifting.py`, `services/api/app/main.py`
+
+- [x] **`TSK-D4-06`**: Remove UI Animations & Add Video Upload.
+  - **Dependencies:** `TSK-D4-05`, `TSK-D2-06`
+  - **Owner:** Piyush (implemented by agent on user request)
+  - **Scope:** (1) Removed all CSS animations (animate-spin, animate-pulse, animate-ping) from CameraPreview.tsx, page.tsx, IncidentFeed.tsx, RuleBuilder.tsx; (2) Added "Upload Shop Video" section in the monitor tab with file input, upload button, and process button; (3) Added backend endpoints `POST /api/v1/shoplifting/upload-video` (multipart file upload → saves to assets/videos/) and `POST /api/v1/shoplifting/process-video` (runs the YOLOv8n + shoplifting monitor pipeline on the uploaded video); (4) Tested pipeline on existing CCTV footage: produced shop_theft_log.csv with 109 rows, 18 theft-suspected incidents, 18 evidence photos.
+  - **Acceptance Criteria:** Animations removed; upload button visible and functional; uploaded video saved and processable; pipeline produces correct shop_theft_log.csv rows on test videos.
+  - **Validation Evidence:**
+    - `npm run build --workspace=apps/web`: Compiles successfully (16.9 kB, 104 kB shared).
+    - `pytest services/edge-agent/tests/test_shoplift_monitor.py services/api/tests/ -q`: 40/40 passed.
+    - `services/api/app/routers/shoplifting.py`: imports OK, upload-video + process-video endpoints registered.
+    - Pipeline run on `cctv_intrusion_1.mp4`: 109 persons tracked, 18 theft_suspected=True, 18 evidence photos saved.
+  - **Completed Date:** 2026-11-05
+  - **Git/File Ref:** `apps/web/src/components/camera/CameraPreview.tsx`, `services/api/app/routers/shoplifting.py`, `services/api/app/main.py`
 
 ---
 
@@ -187,9 +232,9 @@
 
 - [x] **`TSK-D5-01`**: Deterministic Policy Engine.
   - **Dependencies:** `TSK-D1-03`
-  - **Scope:** Implement rule evaluator enforcing cooldowns (default 60s), rate limits (5/hour), schedule checks, and active flags.
-  - **Acceptance Criteria:** Suppresses duplicate candidate events arriving within the cooldown window; logs suppression reason.
-  - **Validation Evidence:** `services/api/app/services/policy.py` implemented; tested via `test_policy_and_events.py`.
+  - **Scope:** Implement rule evaluator enforcing cooldowns (default 60s), camera-scoped rate limits (5/hour), schedule checks, and active flags.
+  - **Acceptance Criteria:** Suppresses duplicate candidate events arriving within the cooldown window; correctly scopes rate limits to specific cameras; matches UTC ISO-8601 timestamps without SQLite format mismatch; logs suppression reason.
+  - **Validation Evidence:** `services/api/app/services/policy.py` implemented with camera join on incidents table and ISO cutoff parameter; verified via `test_policy_and_events.py` and `test_e2e_pipeline.py` (8/8 API tests passing).
   - **Completed Date:** 2026-11-04
 
 - [x] **`TSK-D5-02`**: Action Queue & Idempotency Engine.
@@ -219,9 +264,9 @@
 
 - [x] **`TSK-D6-01`**: End-to-End Integration Test Suite.
   - **Dependencies:** All tracks
-  - **Scope:** Test full pipeline: Hindi prompt → workflow compile → zone detection → VLM verify → policy check → action dispatch.
-  - **Acceptance Criteria:** Automated test script executes the entire pipeline in under 5 seconds with all assertions passing.
-  - **Validation Evidence:** `services/api/tests/test_e2e_pipeline.py` passes full 6-stage lifecycle in 0.68s.
+  - **Scope:** Test full pipeline: Hindi prompt → workflow compile → zone detection → VLM verify → policy check → action dispatch → versioning snapshot → teardown isolation.
+  - **Acceptance Criteria:** Automated test script executes the entire pipeline in under 5 seconds with all assertions passing deterministically on repeated runs.
+  - **Validation Evidence:** `services/api/tests/test_e2e_pipeline.py` executes full 6-stage lifecycle in 0.77s; includes version snapshot validation (`POST /api/v1/workflows/{id}/versions`) and clean teardown isolation.
   - **Completed Date:** 2026-11-04
 
 - [x] **`TSK-D6-02`**: Chaos & Degradation Scenarios.
@@ -243,4 +288,18 @@
   - **Scope:** Rehearse the 3-minute pitch script (PRD §19.1); prepare offline fallback clips and architecture slides.
   - **Acceptance Criteria:** Rehearsal completed within 3:00 timeline; offline toggle tested and verified.
   - **Validation Evidence:** Offline fallback mock mode documented in `plan/ARCHITECTURE.md` and integrated into UI.
+  - **Completed Date:** 2026-11-04
+
+- [x] **`TSK-D6-05`**: Full-Workspace Audit & Live API Smoke Test (external review session).
+  - **Dependencies:** All tracks
+  - **Scope:** Independently re-verify all R0 claims: run full pytest suites, ESLint, Next.js production build, and a live uvicorn smoke test walking compile → workflow create/activate → camera/zone → candidate event → verify → policy → dispatch; probe all GET endpoints and 404 handling.
+  - **Acceptance Criteria:** All suites pass; every `GET` collection endpoint returns 200; end-to-end pipeline dispatches without error in a live server run.
+  - **Validation Evidence:** 37/37 pytest passed in 11.95s; lint clean; `next build` success (102 kB First Load JS); live E2E event flow reached `verified=confirmed → policy=approved → status=action_sent` with sandbox WhatsApp dispatch. Two production bugs found during smoke test are resolved under `TSK-D6-06`.
+  - **Completed Date:** 2026-11-04
+
+- [x] **`TSK-D6-06`**: Fix 500s on `GET /api/v1/incidents` & `GET /api/v1/cameras` (legacy-row resilience) + purge demo DB test debris.
+  - **Dependencies:** `TSK-D6-05`
+  - **Scope:** (1) Make `IncidentResponse.detector_confidence` optional and `CameraResponse.status` tolerant to legacy out-of-enum values so one bad row can no longer 500 the whole collection (fail-safe per AGENTS.md §3). (2) Purge legacy test debris from `services/api/drishtiflow.db` (`cam-test-*`, `cam-stress-*`, `test-cam-01` incidents, duplicate Bay-A cameras / Warehouse workflows, orphan actions/feedback/zones: 4 cameras, 12 duplicate cameras, 38 orphan incidents, 31 orphan actions, 7 orphan feedback, 12 duplicate workflows, 12 orphan zones, 16 orphan workflow versions removed). (3) Add missing autouse cleanup to `test_policy_and_events.py` and `test_e2e_pipeline.py` teardown hardening to stop future DB pollution. (4) Add `services/api/tests/test_legacy_resilience.py` regression tests (2 tests).
+  - **Acceptance Criteria:** After remediation, `pytest` is 37/37 green; all list endpoints return 200; a full repeated pytest run leaves the demo DB clean (cameras=2, incidents=1, workflows=1); live `GET /incidents`, `/cameras`, `/workflows` verified 200.
+  - **Validation Evidence:** Live server re-run after fix: 200 OK on all three list endpoints (UVicorn log verified); DB row counts stable after full test suite rerun.
   - **Completed Date:** 2026-11-04

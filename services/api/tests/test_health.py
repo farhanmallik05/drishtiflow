@@ -16,3 +16,4 @@ def test_ready_check():
     data = response.json()
     assert data["status"] in ["ready", "degraded"]
     assert data["database"] == "connected"
+

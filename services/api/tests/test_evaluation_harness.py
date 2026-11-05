@@ -64,3 +64,4 @@ async def test_evaluation_benchmark():
     assert fn == 0
     assert precision == 1.0
     assert recall == 1.0
+

@@ -113,3 +113,4 @@ export interface SystemHealth {
   active_cameras_count: number;
   incidents_today_count: number;
 }
+

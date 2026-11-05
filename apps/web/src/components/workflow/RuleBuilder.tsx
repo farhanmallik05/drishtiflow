@@ -56,8 +56,10 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     setIsCompiling(true);
     setError(null);
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
     try {
-      const res = await fetch("http://localhost:8000/api/v1/workflows/compile", {
+      const res = await fetch(`${apiBase}/api/v1/workflows/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,6 +73,26 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
       }
 
       const workflow = await res.json();
+
+      // Persist the compiled workflow into backend database (PRD §6.2 FR-W-07)
+      try {
+        const saveRes = await fetch(`${apiBase}/api/v1/workflows`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: workflow.title?.en || "Custom Workflow",
+            camera_id: selectedCameraId,
+            definition: workflow,
+          }),
+        });
+        if (saveRes.ok) {
+          const savedData = await saveRes.json();
+          workflow.id = savedData.id;
+        }
+      } catch (saveErr) {
+        console.warn("Could not persist workflow to backend:", saveErr);
+      }
+
       setCompiledResult(workflow);
       onWorkflowCompiled(workflow);
     } catch (err: any) {
@@ -152,7 +174,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
             type="button"
             className={`p-2 rounded-full border transition ${
               isRecording
-                ? "bg-red-500 text-white animate-pulse border-red-400"
+                ? "bg-red-500 text-white border-red-400"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"
             }`}
             title="Speech input"
@@ -233,3 +255,4 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     </div>
   );
 };
+

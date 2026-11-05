@@ -50,3 +50,4 @@ class EdgeDetector:
                 breach_detections.append(det)
 
         return breach_detections
+

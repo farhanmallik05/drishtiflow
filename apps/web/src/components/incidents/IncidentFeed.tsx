@@ -14,6 +14,8 @@ export interface Incident {
   verifier_confidence?: number;
   reason?: string;
   occurred_at: string;
+  evidence_frame_base64?: string;
+  evidence_url?: string;
 }
 
 interface IncidentFeedProps {
@@ -25,15 +27,17 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
   const [isTesterOpen, setIsTesterOpen] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState<Record<string, string>>({});
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
   // Fetch recent incidents on mount
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/incidents?limit=20")
+    fetch(`${apiBase}/api/v1/incidents?limit=20`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setIncidents(data);
       })
       .catch((err) => console.warn("Failed to fetch initial incidents:", err));
-  }, []);
+  }, [apiBase]);
 
   // Prepend latest incident when candidate triggered
   useEffect(() => {
@@ -48,7 +52,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
 
   const handleFeedback = async (incidentId: string, label: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/incidents/${incidentId}/feedback`, {
+      const res = await fetch(`${apiBase}/api/v1/incidents/${incidentId}/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label, note: "Operator evaluation input" }),
@@ -63,7 +67,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
 
   const handleAcknowledge = async (incidentId: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/incidents/${incidentId}/acknowledge`, {
+      const res = await fetch(`${apiBase}/api/v1/incidents/${incidentId}/acknowledge`, {
         method: "POST",
       });
       if (res.ok) {
@@ -122,7 +126,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
                       inc.status === "action_sent" || inc.status === "confirmed"
-                        ? "bg-red-500 animate-ping"
+                        ? "bg-red-500"
                         : inc.status === "uncertain"
                         ? "bg-amber-500"
                         : "bg-slate-500"
@@ -170,6 +174,21 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
                     Verifier Explanation:
                   </span>
                   {inc.reason}
+                </div>
+              )}
+
+              {/* Snapshot Evidence Thumbnail (PRD §13.3) */}
+              {(inc.evidence_frame_base64 || inc.evidence_url) && (
+                <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-black/50 w-full max-w-sm aspect-video">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={inc.evidence_frame_base64 || inc.evidence_url}
+                    alt={`Incident evidence for ${inc.id}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute bottom-1.5 right-1.5 bg-black/80 border border-slate-700 text-[10px] font-mono text-slate-300 px-2 py-0.5 rounded shadow">
+                    Keyframe Evidence
+                  </span>
                 </div>
               )}
 
@@ -229,3 +248,4 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
     </div>
   );
 };
+

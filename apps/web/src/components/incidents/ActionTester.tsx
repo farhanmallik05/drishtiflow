@@ -23,8 +23,10 @@ export const ActionTester: React.FC<ActionTesterProps> = ({ isOpen, onClose }) =
     setError(null);
     setResult(null);
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+
     try {
-      const res = await fetch("http://localhost:8000/api/v1/actions/test", {
+      const res = await fetch(`${apiBase}/api/v1/actions/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,3 +152,4 @@ export const ActionTester: React.FC<ActionTesterProps> = ({ isOpen, onClose }) =
     </div>
   );
 };
+
