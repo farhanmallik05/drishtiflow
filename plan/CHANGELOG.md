@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.6] - 2026-11-05 (Comprehensive Workflow Architecture & Operational Audit)
+
+### Added
+- **Workflow Audit Report (`plan/WORKFLOW_AUDIT_REPORT.md`)**:
+  - Conducted end-to-end audit across all 9 requested evaluation dimensions with strict zero-code-modification protocol.
+  - Inspected and verified all 7 pipeline layers: Edge Ingestion, Ray-Casting PIP Geometry, 1.5s Dwell Tracker, Vernacular Compiler, Context VLM Verifier, Deterministic Policy Engine, SHA-256 Idempotent Dispatcher.
+  - Documented complete distinction between 100% genuine code vs. simulated sandbox modes (mock VLM heuristics, WhatsApp/Vapi sandbox fallbacks, canvas simulation).
+  - Provided objective 10-category rating table (Overall Workflow: **7.9 / 10**).
+  - Formulated 14-step actionable real-world deployment procedure (hardware, accounts, PostgreSQL migration, MediaMTX RTSP-to-WebRTC bridge, systemd daemons, production activation).
+  - Compiled itemized cost & resource assessment across 3 usage tiers ($11 - $145/month, ~95% cloud cost savings vs continuous CCTV streaming).
+  - Designed 8-stage operational test battery with measurable pass/fail criteria.
+  - Delivered conclusive verdict answering all 8 audit questions directly, classifying the system as **"Functional but Requires Configuration"**.
+
+---
+
 ## [0.1.0-alpha.5] - 2026-11-05 (GitHub Publication & Documentation)
 
 ### Added
