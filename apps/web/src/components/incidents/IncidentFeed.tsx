@@ -126,7 +126,7 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
                       inc.status === "action_sent" || inc.status === "confirmed"
-                        ? "bg-red-500 animate-ping"
+                        ? "bg-red-500"
                         : inc.status === "uncertain"
                         ? "bg-amber-500"
                         : "bg-slate-500"

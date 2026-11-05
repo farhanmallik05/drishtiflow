@@ -174,7 +174,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
             type="button"
             className={`p-2 rounded-full border transition ${
               isRecording
-                ? "bg-red-500 text-white animate-pulse border-red-400"
+                ? "bg-red-500 text-white border-red-400"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"
             }`}
             title="Speech input"

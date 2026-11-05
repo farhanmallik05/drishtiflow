@@ -7,6 +7,55 @@ from services.api.app.database import get_db
 
 client = TestClient(app)
 
+
+@pytest.fixture(autouse=True)
+def clean_e2e_debris():
+    """
+    Guarantee teardown even when assertions fail mid-test (the inline cleanup at
+    the bottom of the test body is skipped in that case, which previously leaked
+    duplicate 'Bhiwandi Bay A Camera' rows and 'test-cam-01' incidents into the
+    live demo database). Keeps newest seed row of each e2e fingerprint.
+    """
+    yield
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM workflows
+            WHERE name = 'Warehouse Intrusion Monitor'
+              AND id NOT IN (
+                SELECT id FROM (
+                  SELECT id FROM workflows
+                  WHERE name = 'Warehouse Intrusion Monitor'
+                  ORDER BY created_at DESC LIMIT 1
+                )
+              )
+        """)
+        cursor.execute("""
+            DELETE FROM workflow_versions
+            WHERE workflow_id NOT IN (SELECT id FROM workflows)
+        """)
+        cursor.execute("""
+            DELETE FROM cameras
+            WHERE name = 'Bhiwandi Bay A Camera'
+              AND id NOT IN (
+                SELECT id FROM (
+                  SELECT id FROM cameras
+                  WHERE name = 'Bhiwandi Bay A Camera'
+                  ORDER BY created_at DESC LIMIT 1
+                )
+              )
+        """)
+        cursor.execute("DELETE FROM incidents WHERE camera_id = 'test-cam-01'")
+        cursor.execute("DELETE FROM zones WHERE camera_id NOT IN (SELECT id FROM cameras)")
+        cursor.execute("DELETE FROM actions WHERE incident_id NOT IN (SELECT id FROM incidents)")
+        cursor.execute("DELETE FROM feedback WHERE incident_id NOT IN (SELECT id FROM incidents)")
+        cursor.execute("DELETE FROM workflow_versions WHERE workflow_id NOT IN (SELECT id FROM workflows)")
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def test_full_drishtiflow_e2e_pipeline():
     """
     Complete end-to-end validation matching PRD §4.2 Hackathon Demo Scope:
@@ -120,7 +169,7 @@ def test_full_drishtiflow_e2e_pipeline():
     assert len(detail["feedback"]) == 1
     print("Full End-to-End Pipeline Passed with Zero Errors!")
 
-    # Teardown / isolation cleanup
+    # Teardown / isolation cleanup (finally-guaranteed even on assertion failure)
     conn = get_db()
     try:
         cursor = conn.cursor()

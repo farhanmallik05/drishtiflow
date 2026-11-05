@@ -65,7 +65,7 @@ class IncidentResponse(BaseModel):
     workflow_version: Optional[int] = None
     event_type: str
     status: IncidentStatus
-    detector_confidence: float
+    detector_confidence: Optional[float] = None
     verifier_confidence: Optional[float] = None
     reason: Optional[str] = None
     evidence_frame_base64: Optional[str] = None
