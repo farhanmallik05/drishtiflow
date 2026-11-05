@@ -95,8 +95,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `test_policy_and_events.py`: added autouse post-test cleanup fixture (previously wrote untracked `test-cam-01` incidents and simulator actions into the shared demo DB on every run).
   - `test_e2e_pipeline.py`: added autouse cleanup fixture deduplicating seed fingerprints (`Bhiwandi Bay A Camera`, `Warehouse Intrusion Monitor`, `test-cam-01`) so mid-test assertion failures can no longer leak rows; inline teardown unchanged.
 
-### Added
-- `services/api/tests/test_legacy_resilience.py`: 2 regression tests seeding exactly the legacy values that broke the API (NULL `detector_confidence`, out-of-enum camera status) and asserting both list endpoints return 200.
+- **README.md (`README.md`)**:
+  - Comprehensive project README with architecture diagrams, system flows, tech stack, directory structure, installation, API endpoints, testing, team ownership, security, and roadmap (R0→R4).
+- **Regression tests (`services/api/tests/test_legacy_resilience.py`)**:
+  - 2 tests seeding exactly the legacy values that broke the API (NULL `detector_confidence`, out-of-enum camera status) and asserting both list endpoints return 200.
 
 ### Verified
 - `pytest services/api/tests/ services/edge-agent/tests/ -q`: **37/37 passed** in 11.95s (was 35/35).
