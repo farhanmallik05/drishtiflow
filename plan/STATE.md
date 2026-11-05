@@ -1,10 +1,10 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-05T02:00:00+05:30  
-**Active Milestone:** Milestone R0 — Hackathon Prototype (Remediated & Verified)  
-**Next Milestone:** Milestone R1 — Supervised Pilot MVP  
-**Overall System Health:** 🟢 GREEN (All 30 tasks complete, 48/48 tests passing, ESLint 0 warnings/errors, Next.js 14 build verified, all bugs fixed — hydration error, upload/pipeline crash, process-video 422, python-multipart dependency, live YOLOv8n edge inference verified on real CCTV footage)
+**Last Updated:** 2026-11-06T03:00:00+05:30  
+**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection & Hospital Emergency Dispatch — USP)  
+**Next Milestone:** Milestone R2 — Multi-Site Operations  
+**Overall System Health:** 🟢 GREEN (All 30 R0 tasks complete, 48/48 tests passing, ESLint 0 warnings/errors, Next.js 14 build verified) | 🟡 R1 IN PROGRESS (Fall Detection & Hospital Emergency Dispatch — 4/6 tasks complete)
 
-**Active Task:** `TSK-D4-06` (DONE) — Remove UI Animations & Add Video Upload. All animations removed; video upload + process endpoints added; process-video 422 fixed with `Body(..., embed=True)`; pipeline tested on CCTV footage (119 rows, 22 theft-suspected, evidence photos).
+**Active Task:** `TSK-R1-04` (IN_PROGRESS) — Fall Monitor UI Tab. R1-01 through R1-03 and R1-05 complete (pose detector, fall state machine, emergency dispatch, API router).
 
 ---
 

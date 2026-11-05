@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Fall Detection & Hospital Emergency Dispatch — USP (R1 Supervised Pilot MVP)**:
+  - `TSK-R1-01` (DONE): Pose Estimation Model Integration (YOLOv8n-Pose) — `services/edge-agent/inference/yolo_pose_detector.py` extracts body keypoints (nose, shoulders, hips, knees, ankles) with posture classification (standing vs fallen).
+  - `TSK-R1-02` (DONE): Fall State Machine with 3-5 Second Timer — `services/edge-agent/tracking/fall_monitor.py` with states: standing → fallen_detected → emergency_trigger → standing. Timer boundary tested (2.9s=no alert, 3.0s=alert).
+  - `TSK-R1-03` (DONE): Hospital Reception Emergency Dispatch — `POST /api/v1/fall-monitor/emergency` dispatches hospital reception alert with idempotency key, bypasses standard cooldown.
+  - `TSK-R1-05` (DONE): Fall Detection API Router — `services/api/app/routers/fall_monitoring.py` with `GET /api/v1/fall-monitor`, `POST /api/v1/fall-monitor/events`, `POST /api/v1/fall-monitor/emergency`. Registered in `services/api/app/main.py`.
+  - `services/edge-agent/tests/test_fall_monitor.py` — 9 tests passing (state machine, timer boundaries, multi-person tracking).
+  - `services/edge-agent/tests/test_yolo_pose_detector.py` — 7 tests passing (keypoint names, fallen/vertical classification, missing keypoints safe default, normalization).
 - **Shoplifting detection monitor (`services/edge-agent/tracking/shoplift_monitor.py`)** (`TSK-D2-06`):
+
+---
   - `ShopliftMonitor` composes the existing YOLOv8n person detector + zone point-in-polygon filter to track persons across frames.
   - Records shop `entry_time` (first entry into shop zone) and `exit_time` (exit or disappearance) per person.
   - Flags `theft_suspected=True` when a person dwells near shelves/items and then exits the shop zone.
