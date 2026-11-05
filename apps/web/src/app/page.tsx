@@ -6,10 +6,11 @@ import { RuleBuilder } from "@/components/workflow/RuleBuilder";
 import { WorkflowGraph } from "@/components/workflow/WorkflowGraph";
 import { IncidentFeed, Incident } from "@/components/incidents/IncidentFeed";
 import { ShopliftingLog } from "@/components/incidents/ShopliftingLog";
+import { FallMonitor } from "@/components/incidents/FallMonitor";
 import { Shield, Eye, Activity, Sliders, BellRing, Sparkles, Server, FileText, User } from "lucide-react";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"monitor" | "workflow" | "incidents" | "shoplifting-log">("monitor");
+  const [activeTab, setActiveTab] = useState<"monitor" | "workflow" | "incidents" | "shoplifting-log" | "fall-monitor">("monitor");
   const [activeWorkflow, setActiveWorkflow] = useState<any>(null);
   const [latestIncident, setLatestIncident] = useState<Incident | null>(null);
 
@@ -96,6 +97,16 @@ export default function Home() {
             >
               <FileText className="w-4 h-4" /> Shoplifting Log
             </button>
+            <button
+              onClick={() => setActiveTab("fall-monitor")}
+              className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                activeTab === "fall-monitor"
+                  ? "bg-red-500 text-white shadow-md"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Activity className="w-4 h-4" /> Fall Monitor
+            </button>
           </div>
 
           {/* System Telemetry Indicator */}
@@ -154,6 +165,12 @@ export default function Home() {
         {activeTab === "shoplifting-log" && (
           <div className="flex flex-col gap-4">
             <ShopliftingLog />
+          </div>
+        )}
+
+        {activeTab === "fall-monitor" && (
+          <div className="flex flex-col gap-4">
+            <FallMonitor />
           </div>
         )}
       </div>

@@ -25,8 +25,8 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 6 | 6 | 0 | 0 |
-| **Track R1: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 4 | 0 | 2 |
-| **Grand Total** | | **36** | **34** | **0** | **2** |
+| **Track R1: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 5 | 0 | 1 |
+| **Grand Total** | | **36** | **35** | **0** | **1** |
 
 ---
 
@@ -332,10 +332,17 @@
   - **Validation Evidence:** Live server tested: `POST /api/v1/fall-monitor/emergency` returns 201 with `event_id`, `triggered_at`, and `"Emergency dispatched to hospital reception"` message.
   - **Completed Date:** 2026-11-06
 
-- [ ] **`TSK-R1-04`**: Fall Monitor UI Tab.
+- [x] **`TSK-R1-04`**: Fall Monitor UI Tab.
   - **Dependencies:** `TSK-R1-02`, `TSK-D4-01` (Next.js App Shell)
-  - **Scope:** New "Fall Monitor" tab in Command Center showing fall status per camera. Visual indicator: person outline turns red when fallen. Countdown timer (3-5s) visible on screen. Emergency button to manually trigger reception alert. Reads from `/api/v1/fall-monitor` endpoint.
+  - **Scope:** `apps/web/src/components/incidents/FallMonitor.tsx` — New "Fall Monitor" tab in Command Center showing fall status per camera. Visual indicator: person outline turns red when fallen. Countdown timer (3-5s) visible on screen. Emergency button to manually trigger reception alert. Reads from `/api/v1/fall-monitor` endpoint. Polls every 2s for live updates.
   - **Acceptance Criteria:** Fall Monitor tab renders; shows per-camera fall status; countdown timer decrements; emergency button triggers dispatch; UI passes lint/build.
+  - **Validation Evidence:** Frontend ESLint clean; Next.js build succeeds; Fall Monitor component integrated into page.tsx with tab navigation.
+  - **Completed Date:** 2026-11-06
+
+- [ ] **`TSK-R1-06`**: Fall Detection End-to-End Test Suite.
+  - **Dependencies:** All R1 tasks
+  - **Scope:** Full pipeline test: video → pose detection → fall state machine → emergency trigger → hospital reception dispatch. Test with simulated fallen person video footage. Verify 3-5s timer accuracy.
+  - **Acceptance Criteria:** E2E test passes; fall detected within 3-5s of person going down; hospital reception alert dispatched; incident persisted; false positives minimized (person bending down briefly = no alert).
   - **Validation Evidence:** (pending)
   - **Completed Date:** (pending)
 
