@@ -6,6 +6,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 2026-11-06 (Demo Reliability Addendum)
+
+### Planning
+- Started TSK-R1-12 through TSK-R1-14 for evidence fallback and bounded verification, auto-refreshing event cards and requested policy presets, and a one-command local demo launcher. This scope does not close any physical-hardware or live-provider pilot blocker.
+
+---
+
+## [Unreleased] - 2026-11-06 (Live RTSP / MJPEG Streaming)
+
+### Added
+- `StreamIngestion` now performs real OpenCV ingestion for `rtsp://`, `http://`, local video files and webcam device indices, with bounded exponential-backoff reconnect and MJPEG frame yielding; `sample` mode remains hardware-free and test-compatible.
+- `annotate_frame_with_yolo()` runs Ultralytics YOLOv8n on decoded frames and returns normalized detections plus a drawn overlay; it degrades to passthrough when Ultralytics or the weights are absent.
+- `GET /api/v1/cameras/{camera_id}/stream` streams `multipart/x-mixed-replace` MJPEG with `annotate` and frame-`stride` query controls, caching detections between inference frames.
+- `GET /api/v1/cameras/{camera_id}/snapshot` returns a single annotated JPEG for evidence capture.
+- `POST /api/v1/cameras/{camera_id}/heartbeat` records edge-agent liveness.
+- Web camera preview gains an RTSP mode: stream URL bar (`rtsp://`, `http://`, or `0`), YOLOv8 box toggle, MJPEG viewport, and "Capture Evidence Snapshot" wired to the candidate-event pipeline.
+- Added `numpy` and `opencv-python-headless` to the API requirements.
+
+### Changed
+- `emitCandidateEvent()` maps RTSP sources to the schema's `local_agent` value and omits `bounding_box` when no detection exists, instead of sending an invalid `rtsp` source or an undefined box.
+- Dwell/zone evaluation now guards on an empty detection list so RTSP and uploaded-video modes cannot read `detectedBoxes[0]`.
+- Camera sources are redacted before being rendered into fallback frames, so an RTSP password embedded in `rtsp://user:pass@host` is never echoed to unauthenticated clients.
+- Uploading a video now switches the preview to the uploaded clip; previously an active RTSP stream kept viewport precedence and the upload appeared to do nothing.
+
+### Verification (2026-11-06)
+- `python -m pytest services/api/tests -q` -> 57 passed, 6 deselected.
+- `python -m pytest services/edge-agent/tests -q` -> 4 passed, 2 skipped (Ultralytics not installed).
+- Local MP4 smoke test: `/snapshot` returned HTTP 200 `image/jpeg`, 41,233 bytes, JPEG magic `ffd8`; MJPEG generator yielded a valid multipart frame chunk.
+- `npm run lint --workspace=apps/web` -> no warnings or errors; `npm run build --workspace=apps/web` -> compiled and type-checked, 4 static routes.
+
+### Known Gaps
+- No physical RTSP camera tested; no FPS/latency measurement and no 20 FPS soak (BLOCKER-02 remains active).
+- Each streaming client opens its own `VideoCapture`; concurrent viewers of the same device/stream are not multiplexed.
+- The endpoints remain unauthenticated, consistent with the rest of R1 scope (BLOCKER-06).
+
+---
+
 ## [Unreleased] - 2026-11-05 (AI Verification Status Correction)
 
 ### Changed

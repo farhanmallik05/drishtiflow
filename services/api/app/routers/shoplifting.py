@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/api/v1/shoplifting", tags=["Shoplifting Log"])
 
@@ -90,7 +91,7 @@ def upload_video(file: UploadFile = File(...)):
 
 
 @router.post("/process-video")
-def process_video(video_path: str = Body(..., embed=True)):
+async def process_video(video_path: str = Body(..., embed=True)):
     """Run the shoplifting detection pipeline on an uploaded video file.
 
     Accepts a video path (from /upload-video) and runs the full YOLOv8n +
@@ -108,9 +109,10 @@ def process_video(video_path: str = Body(..., embed=True)):
     if not requested.exists():
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    # Run the pipeline script as a subprocess.
+    # Run the pipeline script as a subprocess (off the event loop).
     try:
-        result = subprocess.run(
+        result = await run_in_threadpool(
+            subprocess.run,
             [
                 sys.executable,
                 str(PIPELINE_SCRIPT),

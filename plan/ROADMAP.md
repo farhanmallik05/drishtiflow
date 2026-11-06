@@ -100,3 +100,9 @@ The R0 Hackathon Prototype delivery is structured into 10 cohesive engineering m
 - [x] Rehearse 3-minute pitch narrative (Problem -> Vernacular setup -> Edge trigger -> Context verify -> Action).
 - [x] Automated end-to-end integration test suite (`test_e2e_pipeline.py`) passing in 0.68s.
 - **Exit Gate:** Flawless live rehearsal with zero manual workarounds and complete planning evidence. *(VERIFIED)*
+
+### R0 Demo Reliability Addendum (Active)
+- [~] Bound missing-frame capture and VLM verification latency while preserving fail-safe verification states.
+- [~] Refresh incident cards automatically and add Kirana shoplifting, warehouse intrusion, and ATM loitering policy presets.
+- [~] Add a supervised one-command launcher for the local API and web demo.
+- **Exit Gate:** Focused backend checks and Next.js TypeScript/build validation pass; local launcher smoke check runs against an isolated temporary database. This addendum does not satisfy R1 physical-device, live-provider, authentication, delivery, or empirical-accuracy gates.

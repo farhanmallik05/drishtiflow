@@ -177,8 +177,8 @@ def create_workflow_version(workflow_id: str, payload: Optional[Dict[str, Any]] 
     )
 
     cursor.execute(
-        "UPDATE workflows SET updated_at = ? WHERE id = ?",
-        (now, workflow_id)
+        "UPDATE workflows SET active_version = ?, updated_at = ? WHERE id = ?",
+        (next_version, now, workflow_id)
     )
 
     conn.commit()

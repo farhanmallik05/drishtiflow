@@ -1,7 +1,7 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-06T00:01:00+05:30
-**Active Milestone:** Milestone R1 Blocker Clearance — Genuine AI Integrations  
-**Active Task:** Genuine Groq (qwen/qwen3.8-27b) and Gemini Multimodal Vision Integrations with 10-Case Labeled Image Evaluation Harness  
+**Last Updated:** 2026-11-06T01:24:00+05:30
+**Active Milestone:** R0 Demo Reliability Addendum (R1 safety gates remain open)
+**Active Task:** TSK-R1-12–TSK-R1-14 — evidence fallback, bounded VLM verification, live event feed, Bharat presets, and one-command demo startup
 **GitHub Repository:** `farhanmallik05/drishtiflow`  
 **Latest Milestone Deliverables:**  
 - Production AI Configuration Loader with Groq & Gemini Validation (`services/api/app/config.py`)  
@@ -9,7 +9,10 @@
 - Genuine Gemini Multimodal Context Verifier with Pillow Byte Validation & 5-State Contract (`services/api/app/services/verifier.py`)  
 - 10-Case Labeled Image Dataset & Empirical Benchmark Harness (`services/api/tests/test_evaluation_harness.py`)  
 - Dedicated Groq and Gemini Test Suites (`test_groq_compiler.py`, `test_gemini_verifier.py`)  
-**Overall System Health:** 🟠 IN PROGRESS (Provider adapters exist; live-provider tests and real-image evaluation are unverified in this environment)
+- Real OpenCV stream ingestion with bounded-backoff reconnect (`services/edge-agent/ingest/stream.py`)  
+- Live MJPEG streaming + snapshot endpoints with YOLOv8 annotation (`services/api/app/routers/cameras.py`)  
+- RTSP mode, URL bar, YOLO toggle and evidence snapshot in the camera preview (`CameraPreview.tsx`)  
+**Overall System Health:** 🟠 IN PROGRESS (Demo reliability implementation is active; live provider, physical camera, and pilot safety gates remain unverified)
 
 ---
 
@@ -23,9 +26,10 @@
 | **Monorepo Scaffold** | Complete (`apps/web`, `services/api`, `services/edge-agent`, `packages/*`) | Complete |
 | **Workflow Compiler** | Operational on Groq (`qwen/qwen3.8-27b`) + Gemini fallback + Allowlist filtering | Strict schema output & needs_review |
 | **Edge Vision & Zone** | Interactive polygon canvas + ray-casting PIP + 1.5s dwell + Evidence frame | Zone trigger on human presence |
+| **Live Camera Ingestion** | RTSP/HTTP/USB via OpenCV, MJPEG streaming, YOLOv8 box overlay, snapshot evidence | Live IP camera monitoring |
 | **Context Verifier** | Gemini adapter and 5-state contract; fail-closed behavior needs verification | Real keyframe inspection and safe degradation |
 | **Action Engine** | Policy cooldown + camera-scoped rate limit + WhatsApp/Vapi adapters | Idempotent alerts without duplicates |
-| **API Test Battery** | Previously recorded pass counts could not be rerun: Python is unavailable | Automated end-to-end verification |
+| **API Test Battery** | 57 passed, 6 deselected (`python -m pytest services/api/tests -q`, 2026-11-06) | Automated end-to-end verification |
 | **10-Case Evaluation Harness** | Synthetic drawings; permits provider failures and may exercise mock mode; no real-world accuracy evidence | Separately configured integration tests on labeled real imagery |
 
 ---

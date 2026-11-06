@@ -2,7 +2,7 @@
 **Milestone:** R0 — Hackathon Prototype (Build with Bharat 5.0)  
 **Governing Document:** [DrishtiFlow_Enhanced_PRD_v3_EMPTY.md](file:///d:/hackathon/Build%20with%20Bharat/DrishtiFlow_Enhanced_PRD_v3_EMPTY.md)  
 **Plan Rule:** [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLAN_RULE.md)  
-**Last Updated:** 2026-11-06T00:01:00+05:30
+**Last Updated:** 2026-11-06T01:24:00+05:30
 
 ---
 
@@ -26,7 +26,8 @@
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
 | **Milestone R1 Pilot Blocker Clearance Track** | All | 11 | 0 | 2 | 9 |
-| **Total** | | **38** | **27** | **2** | **9** |
+| **R0 Demo Reliability Addendum** | Farhan / Kartikey / Ankit / Piyush | 3 | 0 | 3 | 0 |
+| **Total** | | **41** | **27** | **5** | **9** |
 
 ---
 
@@ -257,10 +258,12 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Scope:** Execute uninterrupted 30-minute monitoring session on NVIDIA Jetson or Intel N100; profile RSS memory heap and CPU load every 30s.
   - **Acceptance Criteria (Clears BLOCKER-01):** Zero unhandled process exits; memory heap growth between minute 5 and minute 30 < 5%; frame processing rate maintains ≥ 20 FPS throughout.
 
-- [ ] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
+- [~] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
   - **Dependencies:** `TSK-D2-01`
   - **Scope:** Replace browser canvas and mock stream dictionaries with physical RTSP stream decoding via OpenCV and live YOLOv8n TensorRT/ONNX inference.
   - **Acceptance Criteria (Clears BLOCKER-02):** Genuine computer vision inference executing on raw camera frame tensors at ≥ 20 FPS with per-frame latency ≤ 45ms.
+
+   - **Progress (2026-11-06):** `StreamIngestion` now decodes real RTSP/HTTP/file/webcam sources with bounded-backoff reconnect and MJPEG yield; the API exposes `GET /api/v1/cameras/{id}/stream` and `/snapshot` with frame-strided YOLOv8 annotation; the web preview has an RTSP mode with URL bar, YOLO toggle and evidence snapshot. Verified with a local MP4: snapshot returned a 41 KB JPEG and the MJPEG generator produced valid multipart frames. Still open: Ultralytics is not installed in this environment, so the 2 YOLO edge tests skip and no live-model latency/FPS numbers exist; no physical RTSP camera or 20 FPS soak has been executed.
 
 - [ ] **`TSK-R1-03`**: Real-Time Camera Heartbeat Watchdog & 15s Degradation UI.
   - **Dependencies:** `TSK-D2-04`
@@ -278,6 +281,24 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Scope:** Integrate live Groq API (`qwen/qwen3.8-27b`) with JSON mode; support Hindi, Hinglish, and English; validate against `WorkflowDefinition`; enforce allowlists; provide explicit fallback reporting.
   - **Acceptance Criteria:** Real Groq requests return schema-valid workflows; incomplete rules trigger clarification questions; missing/invalid keys gracefully fall back with explicit metadata; allowlists enforce detector classes and action items.
   - **Current Finding (2026-11-05):** Provider integration and tests are present, but cannot be rerun here because Python is unavailable. Existing live-call evidence remains recorded in the historical changelog and requires a reproducible configured run before this task is closed.
+
+### R0 Demo Reliability Addendum
+
+- [~] **TSK-R1-12**: Evidence Capture and Bounded Context Verification.
+  - **Owner:** Kartikey / Ankit
+  - **Scope:** Ensure candidate events persist either a prompt camera keyframe or a clearly labeled generated placeholder; bound OpenCV snapshot attempts and all VLM verification to the demo latency budgets.
+  - **Acceptance Criteria:** Missing evidence is filled without blocking the event route for more than 500 ms; provider errors and timeouts return the five-state verification contract and never trigger actions as confirmed.
+  - **Validation Evidence:** Pending focused API checks for missing evidence, invalid camera, and verifier timeout/provider error.
+- [~] **TSK-R1-13**: Live Event Feed and Bharat Policy Presets.
+  - **Owner:** Piyush
+  - **Scope:** Poll incidents every 2.5 seconds, refresh immediately after a candidate event, render evidence thumbnails and verification state, and provide the three requested Kirana / Warehouse / ATM rule presets.
+  - **Acceptance Criteria:** New persisted incidents appear without reload; event cards show image evidence, confidence, status, and verifier reasoning; each preset fills and compiles its stated prompt.
+  - **Validation Evidence:** Pending TypeScript compilation and frontend build.
+- [~] **TSK-R1-14**: One-Command Local Demo Launcher.
+  - **Owner:** Farhan
+  - **Scope:** Add start_demo.py to initialize the local API database, seed the default demo camera and zone when appropriate, start FastAPI and Next.js together, and stop child processes cleanly.
+  - **Acceptance Criteria:** python start_demo.py starts both services with readable logs; Ctrl+C shuts both down; existing camera data is preserved.
+  - **Validation Evidence:** Pending isolated launcher smoke check that does not modify the user's existing SQLite database.
 
 - [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
   - **Dependencies:** `TSK-D5-03`

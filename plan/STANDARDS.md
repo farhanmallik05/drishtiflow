@@ -70,6 +70,8 @@ A task or feature in DrishtiFlow is strictly considered **DONE** only when all o
 | **Edge Frame Inference (WebGPU)** | ≤ 50ms per frame (≥ 20 FPS) | Downsample input resolution to 320x320 or lower frame sampling rate |
 | **Edge Frame Inference (CPU WASM)** | ≤ 125ms per frame (≥ 8 FPS) | Limit frame sampling to 4-5 FPS |
 | **VLM Context Verification (Cloud)** | ≤ 3,500ms p95 latency | Trigger circuit breaker and fallback to local mock after 2 consecutive timeouts |
+| **VLM Per-Event Wall-Clock Deadline** | ≤ 4,000ms per candidate | Return processing_failed with human review; do not authorize actions on timeout |
+| **Automatic Evidence Snapshot Attempt** | ≤ 500ms wait on candidate ingestion | Store the captured frame or a labeled placeholder and continue safely |
 | **Deterministic Policy Check** | ≤ 20ms | In-memory evaluation of schedules and cooldowns |
 | **Action Dispatch (Queue to API)** | ≤ 500ms | Asynchronous non-blocking worker |
 | **Client Bundle Size (Initial Load)** | ≤ 250 KB gzip | Dynamic import for React Flow canvas and ONNX runtime |
