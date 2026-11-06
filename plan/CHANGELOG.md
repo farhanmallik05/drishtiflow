@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2026-11-06 (Demo Reliability Addendum)
 
 ### Live Demo Hardening & Master Prototype Completion (2026-11-06)
+- **Zero-Error Full Stack & Command Center Hardening (DONE):**
+  - Resolved merge conflicts with origin/master, cleanly separating pps/web (Next.js 14 Web Command Center) and LandingPage (Vite 3D Showcase).
+  - Next.js 14 Command Center build: 
+pm run build --prefix apps/web exited 0; 4/4 static pages generated cleanly.
+  - Next.js ESLint: 
+pm run lint --prefix apps/web passed with 0 warnings and 0 errors.
+  - Backend & Edge Pytest suite: **111 passed, 6 deselected** across all 12 test modules (python -m pytest services/api/tests services/edge-agent/tests -q).
+  - Single-command launcher (start_demo.py): Hardened with ASCII-safe stream handling and Windows 	askkill /F /T /PID process tree termination; verified live startup of both FastAPI (/api/v1/health HTTP 200) and Next.js (http://localhost:3000 HTTP 200).
+- **TSK-D6-05 (DONE):** Grand Finale Pitch Master Pack & Judges Defense Playbook:
+  - Authored comprehensive 10-slide Pitch Master Deck (`plan/FINAL_PITCH_DECK.md`) detailing the passive CCTV crisis in Bharat, 3-tier edge+VLM architecture, 4 flagship USPs, empirical benchmarks, and TCO unit economics.
+  - Created word-for-word 3-Minute Live Presentation Script (`plan/PITCH_DEMO_SCRIPT.md`) with second-by-second cues, co-pilot screen actions, and contingency emergency lines.
+  - Formulated 20-Question Judges Q&A Defense Bible (`plan/JUDGES_QA_BIBLE.md`) covering edge inference, VLM rationale, DPDP Act compliance, transient fall recovery, and commercial GTM strategy.
 - **TSK-R1-FALL-06 (DONE):** Added comprehensive Fall Detection E2E test suite (`services/api/tests/test_fall_e2e_pipeline.py`) validating pose keypoint stream, 3.0s confirmation timer, state machine transitions, FastAPI event ingest, and hospital emergency dispatch with 3/3 tests passing.
 - **TSK-R1-12 (DONE):** Resilient Candidate Event Schema & Wi-Fi-Proof Context Verification:
   - Enhanced `CandidateEvent` schema in `services/api/app/schemas/incident.py` with field normalizers for `evidence_frame`, `timestamp`, `dwell_time_sec`, and additional source modes (`rtsp`, `http`, `upload`).
@@ -34,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TSK-R1-02 (VALIDATED):** Installed the declared `ultralytics` dependency and added a narrow Windows `WinError 1337` invalid-mount guard so the full edge test collection can import YOLO modules.
 - API validation: **79 passed, 6 deselected**.
 - Edge validation: **32 passed** with the full suite collected; live physical-camera soak and model FPS remain pilot evidence items.
+
+### Runtime
+- **Demo runtime repair:** Restored the Vite Landing Page frontend, removed stale Next.js entry/config files that were being picked up by TypeScript/PostCSS, configured Vite to use port 3000, synchronized dependencies, and verified the landing page with the API on port 8000.
 
 ### Added
 - **Futuristic 3D Landing Page & Smart Surveillance Operations Platform (`LandingPage`)** (`TSK-FE-05`):

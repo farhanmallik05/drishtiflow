@@ -287,6 +287,13 @@
   - **Validation Evidence:** Offline fallback mock mode documented in `plan/ARCHITECTURE.md` and integrated into UI.
   - **Completed Date:** 2026-11-04
 
+- [x] **`TSK-D6-05`**: Final Grand Finale Pitch Master Pack & Judges Defense Playbook.
+  - **Dependencies:** `TSK-D6-04`, `TSK-R1-14`
+  - **Scope:** Complete 10-slide master pitch deck (`plan/FINAL_PITCH_DECK.md`), word-for-word 3-minute live presentation script with screen cues and contingency pivot lines (`plan/PITCH_DEMO_SCRIPT.md`), and comprehensive 20-question Judges Q&A Defense Bible (`plan/JUDGES_QA_BIBLE.md`).
+  - **Acceptance Criteria:** Slide-by-slide narrative matches PRD §19, 3-minute demo script covers all 4 USPs, and technical defense matrix addresses low-bandwidth, DPDP compliance, VLM latency, and TCO unit economics.
+  - **Validation Evidence:** `plan/FINAL_PITCH_DECK.md`, `plan/PITCH_DEMO_SCRIPT.md`, and `plan/JUDGES_QA_BIBLE.md` generated and verified.
+  - **Completed Date:** 2026-11-06
+
 ---
 
 - [x] **`TSK-D6-06`**: Fix 500s on `GET /api/v1/incidents` & `GET /api/v1/cameras` (legacy-row resilience) + purge demo DB test debris.
@@ -398,7 +405,7 @@ This track governs the ten non-negotiable Pilot Release Blockers (`BLOCKER-01` t
 - [x] **`TSK-R1-14`**: One-Command Local Demo Launcher.
   - **Owner:** Farhan
   - **Acceptance Criteria:** `python start_demo.py` starts both services, preserves existing camera data, and cleans up child processes.
-  - **Validation Evidence:** Created `start_demo.py` at root; tested database seeder preserving existing rows and graceful process shutdown.
+  - **Validation Evidence:** Created `start_demo.py` at root; tested database seeder preserving existing rows and graceful process shutdown. Landing-page runtime uses Vite on port 3000, with stale Next.js entry/config files removed and Vite `200` plus API `/api/v1/health` `200` verified.
   - **Completed Date:** 2026-11-06
 
 - [x] **`TSK-D6-06`**: Legacy-row resilience and demo database cleanup.

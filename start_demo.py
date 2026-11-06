@@ -18,6 +18,15 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent
 API_DIR = ROOT_DIR / "services" / "api"
 WEB_DIR = ROOT_DIR / "apps" / "web"
@@ -30,7 +39,7 @@ BANNER = r"""
  | | | | '__| / __| '_ \| __| | |_  | |/ _ \ \ /\ / / 
  | |_| | |  | \__ \ | | | |_| |  _| | | (_) \ V  V /  
  |____/|_|  |_|___/_| |_|\__|_|_|   |_|\___/ \_/\_/   
-   DrishtiFlow (दृष्टि-फ़्लो) — Build with Bharat 5.0
+   DrishtiFlow -- Build with Bharat 5.0
    Autonomous Edge Vision & Vernacular VLM Verification Platform
 ================================================================================
 """
@@ -106,10 +115,13 @@ def main() -> int:
         for p in processes:
             if p.poll() is None:
                 try:
-                    p.terminate()
+                    if sys.platform == "win32":
+                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True)
+                    else:
+                        p.terminate()
                 except Exception:
                     pass
-        time.sleep(1)
+        time.sleep(0.5)
         for p in processes:
             if p.poll() is None:
                 try:
@@ -158,12 +170,12 @@ def main() -> int:
     processes.append(p_web)
 
     print("\n" + "=" * 60)
-    print("  🚀 DRISHTIFLOW IS RUNNING!")
-    print("  • Web Console:        http://localhost:3000")
-    print("  • API Swagger Docs:   http://localhost:8000/docs")
-    print("  • Camera MJPEG Feed:  http://localhost:8000/api/v1/cameras/cam-shop-01/stream")
-    print("  • Fall Monitor API:   http://localhost:8000/api/v1/fall-monitor")
-    print("  • Shoplifting Log:    http://localhost:8000/api/v1/shoplifting/records")
+    print("  [*] DRISHTIFLOW IS RUNNING!")
+    print("  - Web Console:        http://localhost:3000")
+    print("  - API Swagger Docs:   http://localhost:8000/docs")
+    print("  - Camera MJPEG Feed:  http://localhost:8000/api/v1/cameras/cam-shop-01/stream")
+    print("  - Fall Monitor API:   http://localhost:8000/api/v1/fall-monitor")
+    print("  - Shoplifting Log:    http://localhost:8000/api/v1/shoplifting/records")
     print("  Press Ctrl+C to shut down all services.")
     print("=" * 60 + "\n")
 
