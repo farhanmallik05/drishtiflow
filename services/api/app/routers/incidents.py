@@ -94,7 +94,15 @@ async def trigger_verification(incident_id: str, req: VerificationRequest):
         detector_confidence=inc["detector_confidence"]
     )
 
-    new_status = "confirmed" if result.decision == "confirmed" else "uncertain"
+    # Preserve the verifier's 5-state decision instead of collapsing everything
+    # non-confirmed to "uncertain".
+    _status_map = {
+        "confirmed": "confirmed",
+        "not_confirmed": "not_confirmed",
+        "needs_human_review": "needs_human_review",
+        "processing_failed": "uncertain",
+    }
+    new_status = _status_map.get(result.decision, "uncertain")
     cursor.execute(
         "UPDATE incidents SET verifier_confidence = ?, reason = ?, status = ? WHERE id = ?",
         (result.confidence, result.evidence_summary, new_status, incident_id)
