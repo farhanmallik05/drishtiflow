@@ -22,11 +22,11 @@
 | **Track 1: Monorepo & Shared Schemas** | Farhan | 4 | 4 | 0 | 0 |
 | **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 5 | 5 | 0 | 0 |
 | **Track 3: Context Verification Engine** | Ankit | 4 | 4 | 0 | 0 |
-| **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
+| **Track 4: Frontend, Canvas & Incident UI** | Piyush | 7 | 7 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 6 | 6 | 0 | 0 |
 | **Track R1: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 5 | 0 | 1 |
-| **Grand Total** | | **36** | **35** | **0** | **1** |
+| **Grand Total** | | **37** | **36** | **0** | **1** |
 
 ---
 
@@ -226,6 +226,21 @@
     - Pipeline run on `cctv_intrusion_1.mp4`: 109 persons tracked, 18 theft_suspected=True, 18 evidence photos saved.
   - **Completed Date:** 2026-11-05
   - **Git/File Ref:** `apps/web/src/components/camera/CameraPreview.tsx`, `services/api/app/routers/shoplifting.py`, `services/api/app/main.py`
+
+- [x] **`TSK-D4-07`**: Futuristic 3D Landing Page & Smart Surveillance Operations Platform (`LandingPage`).
+  - **Dependencies:** `TSK-D4-01`
+  - **Owner:** Piyush
+  - **Scope:** Complete cyber-tactical 3D surveillance portal and emergency command platform:
+    1. Interactive Three.js 3D Dome PTZ Surveillance Camera with pan-tilt turret, holographic scanning laser, and particle field.
+    2. Procedural multi-camera monitoring canvas covering 6 zones (Main Entrance, Underground Parking B2, Executive Corridor 3F, Rooftop North Perimeter, Server Vault, Loading Dock South) with Phosphor Night Vision and Thermal IR shaders.
+    3. Emergency Detection Center with 4 audit scenarios (Fall risk, Fire/smoke, Unauthorized entry, Person down) and 5-stage verified response pipeline.
+    4. "LISTY AI" voice-controlled assistant with English and Hindi NLU rule parsing and synthesized voice responses.
+    5. Smart Automation Rules Engine, Multi-channel Notification Center, Analytics Density Heatmap, and Camera Fleet Manager with Privacy Masking editor.
+  - **Validation Evidence:**
+    - `npm run build` in `LandingPage`: builds cleanly with Vite in 875ms (`dist/` generated, 0 type errors).
+    - Interactive 3D scene, voice commands, and multi-camera views tested locally.
+  - **Completed Date:** 2026-11-06
+  - **Git/File Ref:** `LandingPage/`
 
 ---
 

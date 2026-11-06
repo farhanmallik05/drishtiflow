@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Futuristic 3D Landing Page & Smart Surveillance Operations Platform (`LandingPage`)** (`TSK-FE-05`):
+  - 3D Interactive Surveillance Camera scene with Three.js (pan-tilt turret, glowing optical lens, holographic scanning laser, floating particle field, mouse tracking).
+  - Procedural multi-camera monitoring canvas across 6 facilities (Entrance, Underground Parking, Executive Corridor, Rooftop Perimeter, Server Vault, Loading Dock) with Night Vision and Thermal IR filters.
+  - Emergency Detection Center with 4 audit scenarios (Fall risk, Fire & smoke, Unauthorized entry, Person down) and 5-stage verified response workflow.
+  - "LISTY AI" voice-controlled assistant with English and Hindi NLU rule parsing and speech synthesis.
+  - Smart Automation Rule Builder, Multi-channel Notification Center, Real-Time Analytics & Activity Heatmap, Fleet Management with Privacy Masking editor, and RBAC governance.
 - **Fall Detection & Hospital Emergency Dispatch — USP (R1 Supervised Pilot MVP)**:
   - `TSK-R1-01` (DONE): Pose Estimation Model Integration (YOLOv8n-Pose) — `services/edge-agent/inference/yolo_pose_detector.py` extracts body keypoints (nose, shoulders, hips, knees, ankles) with posture classification (standing vs fallen).
   - `TSK-R1-02` (DONE): Fall State Machine with 3-5 Second Timer — `services/edge-agent/tracking/fall_monitor.py` with states: standing → fallen_detected → emergency_trigger → standing. Timer boundary tested (2.9s=no alert, 3.0s=alert).
