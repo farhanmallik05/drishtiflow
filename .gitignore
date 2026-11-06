@@ -45,6 +45,15 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
+*.db
+*.sqlite
+*.sqlite3
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Agent scratch / teamwork
+.agents/teamwork/
 
 # Environment variables & secrets (NEVER COMMIT)
 .env

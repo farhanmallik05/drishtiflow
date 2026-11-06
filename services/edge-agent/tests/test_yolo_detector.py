@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 import pytest
+pytest.importorskip("ultralytics")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "inference"))
 

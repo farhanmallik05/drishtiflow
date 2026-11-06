@@ -85,10 +85,22 @@ flowchart TD
 
 ### 2.2 Video Ingestion & Camera Gateway
 - **Input Sources:**
-  - `webcam`: Direct browser capture via `navigator.mediaDevices.getUserMedia` (MVP primary).
+  - `webcam`: Direct browser capture via `navigator.mediaDevices.getUserMedia`, or server-side device index (`0`) via OpenCV.
   - `sample`: Pre-loaded test video streams (warehouse restricted zone, daytime operation) for reliable demonstrations.
+  - `rtsp` / `http`: Live CCTV or IP-camera feed decoded by the API/edge agent with OpenCV; browsers receive `multipart/x-mixed-replace` MJPEG from `GET /api/v1/cameras/{id}/stream`.
   - `webrtc_gateway`: IP camera bridge converting RTSP feeds to low-latency WebRTC streams (Phase 2).
   - `local_agent`: Dedicated background daemon for 24/7 site monitoring without browser dependency.
+- **Streaming Path:**
+  - `StreamIngestion` (`services/edge-agent/ingest/stream.py`) owns `cv2.VideoCapture`, resizes to 640×360, applies bounded exponential-backoff reconnect, and yields multipart JPEG chunks.
+  - YOLOv8n annotation runs every Nth frame (`stride`, default 3); intermediate frames re-draw the cached boxes so inference cost does not cap playback FPS.
+  - `GET /api/v1/cameras/{id}/snapshot` opens a one-shot capture and returns an annotated JPEG used as event evidence.
+  - Each viewer opens its own capture handle; the current implementation does not multiplex one device across multiple clients.
+- **Candidate Evidence & Verification Reliability:**
+  - POST /api/v1/events/candidates retains an edge-provided frame, otherwise attempts a bounded snapshot from the configured camera and stores a generated, visibly labeled JPEG placeholder if capture is unavailable.
+  - Context verification has a hard 4-second wall-clock deadline. Timeout, malformed output, or provider failure maps to processing_failed and operator review; it cannot authorize an action.
+  - The incident feed refreshes persisted incidents every 2.5 seconds and immediately after a candidate response; cards display stored evidence and verification context.
+- **Local Demo Startup:**
+  - Root start_demo.py initializes the API SQLite schema, seeds the cam-shop-01 demo camera and High-Value Shelf Zone only when the database contains no configured camera (including the repository's empty-database bootstrap case), and starts API and web processes as supervised children.
 - **Privacy Controls:**
   - No continuous video is uploaded to the cloud.
   - Video stays local on the client/edge machine. Only verified candidate keyframes (snapshots) are transmitted for context verification upon detection.
@@ -116,7 +128,8 @@ flowchart TD
   - `needs_human_review`: Edge case requiring operator sign-off before escalation.
   - `processing_failed`: Provider error, timeout, or schema failure.
 - **Safety Policy:** Provider timeout or schema failure NEVER resolves to `safe` or `confirmed`. It safely degrades to `uncertain` / `processing_failed`.
-- **Offline Fallback:** Deterministic local mock verifier pre-trained on the demonstration test clips to ensure zero-risk live presentations if internet connectivity fails.
+- **Provider Selection:** Deterministic verification runs only when `VISION_PROVIDER=mock` is explicitly configured. A selected live provider with missing credentials, image evidence, or a valid response fails closed to `processing_failed` with human review required; it must not fall through to mock confirmation.
+- **Response Validation:** Provider output must parse as JSON and validate against `VerificationResult` before returning. Missing decision/evidence fields and invalid decisions cannot receive success-shaped defaults.
 
 ---
 
@@ -293,6 +306,11 @@ create index idx_cameras_site on cameras (site_id);
 | `POST` | `/api/v1/workflows/{id}/pause` | Pause active monitoring for a workflow |
 | `GET` | `/api/v1/cameras` | List configured cameras with live status |
 | `POST` | `/api/v1/cameras` | Register a new camera stream or sample clip |
+| `POST` | `/api/v1/cameras/{id}/zones` | Persist an interactive polygon zone |
+| `POST` | `/api/v1/cameras/{id}/test` | Test camera connectivity and mark it online |
+| `POST` | `/api/v1/cameras/{id}/heartbeat` | Record an edge-agent heartbeat |
+| `GET` | `/api/v1/cameras/{id}/stream` | Live MJPEG stream (`stream_url`, `annotate`, `stride`) |
+| `GET` | `/api/v1/cameras/{id}/snapshot` | Single annotated JPEG frame for evidence |
 | `POST` | `/api/v1/events/candidates` | Ingest candidate event from edge detector |
 | `POST` | `/api/v1/incidents/{id}/verify` | Trigger contextual VLM verification |
 | `GET` | `/api/v1/incidents` | Query incident history with filtering & pagination |

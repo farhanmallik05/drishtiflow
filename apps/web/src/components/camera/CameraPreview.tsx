@@ -13,8 +13,16 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
   onCandidateTriggered,
   activeWorkflowId,
 }) => {
+  const cameraId = "cam-warehouse-gate-01";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [sourceType, setSourceType] = useState<"sample" | "webcam">("sample");
+  const [sourceType, setSourceType] = useState<"sample" | "webcam" | "rtsp">("sample");
+  const [streamUrl, setStreamUrl] = useState("0");
+  const [activeStreamUrl, setActiveStreamUrl] = useState("0");
+  const [annotateYolo, setAnnotateYolo] = useState(true);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [snapshotBusy, setSnapshotBusy] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [fps, setFps] = useState(24);
   const [isAlarming, setIsAlarming] = useState(false);
@@ -66,7 +74,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
   // Simulated person movement trajectory across warehouse bay
   // Disabled when viewing uploaded video — no animation overlays on real footage.
   useEffect(() => {
-    if (!isSimulatingPerson || uploadedVideoPath) return;
+    if (!isSimulatingPerson || uploadedVideoPath || sourceType !== "sample") return;
     const interval = setInterval(() => {
       setPersonPos((prev) => {
         let nextX = prev.x + 0.015;
@@ -75,10 +83,10 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       });
     }, 150);
     return () => clearInterval(interval);
-  }, [isSimulatingPerson, uploadedVideoPath]);
+  }, [isSimulatingPerson, uploadedVideoPath, sourceType]);
 
   // Computed bounding box for the person — empty when viewing uploaded video
-  const detectedBoxes = uploadedVideoPath
+  const detectedBoxes = uploadedVideoPath || sourceType === "rtsp"
     ? []
     : [
         {
@@ -96,7 +104,12 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
   const hasTriggeredRef = useRef(false);
 
   useEffect(() => {
-    if (uploadedVideoPath) return;
+    if (uploadedVideoPath || detectedBoxes.length === 0) {
+      dwellCounterRef.current = 0;
+      hasTriggeredRef.current = false;
+      setIsAlarming(false);
+      return;
+    }
     const feet: Point = {
       x: (detectedBoxes[0].x_min + detectedBoxes[0].x_max) / 2,
       y: detectedBoxes[0].y_max,
@@ -118,12 +131,12 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       hasTriggeredRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personPos, zonePoints, uploadedVideoPath]);
+  }, [personPos, zonePoints, uploadedVideoPath, sourceType]);
 
-  const emitCandidateEvent = async () => {
-    let evidenceFrame: string | null = null;
+  const emitCandidateEvent = async (evidenceOverride?: string | null) => {
+    let evidenceFrame: string | null = evidenceOverride ?? null;
 
-    if (sourceType === "webcam" && videoRef.current) {
+    if (!evidenceFrame && sourceType === "webcam" && videoRef.current) {
       try {
         const offCanvas = document.createElement("canvas");
         offCanvas.width = videoRef.current.videoWidth || 640;
@@ -138,7 +151,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       }
     }
 
-    if (!evidenceFrame && typeof document !== "undefined") {
+    if (!evidenceFrame && detectedBoxes.length > 0 && typeof document !== "undefined") {
       try {
         const offCanvas = document.createElement("canvas");
         offCanvas.width = 640;
@@ -171,21 +184,19 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
 
     const eventPayload: any = {
       event_id: crypto.randomUUID(),
-      camera_id: "cam-warehouse-gate-01",
+      camera_id: cameraId,
       workflow_id: activeWorkflowId || null,
       event_type: "restricted_zone_entry",
       occurred_at: new Date().toISOString(),
-      source: sourceType,
+      source: sourceType === "webcam" ? "webcam" : sourceType === "rtsp" ? "local_agent" : "sample",
       detector: {
-        name: "yolov8n-web",
+        name: sourceType === "rtsp" ? "yolov8n-edge" : "yolov8n-web",
         version: "8.1.0",
         confidence: 0.89,
-        bounding_box: detectedBoxes[0],
+        bounding_box: detectedBoxes[0] ?? null,
       },
       evidence_frame_base64: evidenceFrame,
     };
-
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
 
     try {
       const res = await fetch(`${apiBase}/api/v1/events/candidates`, {
@@ -202,6 +213,45 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       }
     } catch (e) {
       console.error("Failed to emit candidate event to backend:", e);
+    }
+  };
+
+  // --- Live RTSP / Edge Stream ---
+  const mjpegStreamUrl = `${apiBase}/api/v1/cameras/${encodeURIComponent(
+    cameraId
+  )}/stream?stream_url=${encodeURIComponent(activeStreamUrl)}&annotate=${
+    annotateYolo ? "true" : "false"
+  }`;
+
+  const captureStreamSnapshot = async () => {
+    setSnapshotBusy(true);
+    setStreamError(null);
+
+    try {
+      const res = await fetch(
+        `${apiBase}/api/v1/cameras/${encodeURIComponent(
+          cameraId
+        )}/snapshot?stream_url=${encodeURIComponent(activeStreamUrl)}&annotate=${
+          annotateYolo ? "true" : "false"
+        }`
+      );
+      if (!res.ok) {
+        throw new Error(`Snapshot failed: HTTP ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Could not read snapshot data"));
+        reader.readAsDataURL(blob);
+      });
+
+      await emitCandidateEvent(dataUrl);
+    } catch (err: any) {
+      setStreamError(err?.message || "Snapshot capture failed");
+    } finally {
+      setSnapshotBusy(false);
     }
   };
 
@@ -226,7 +276,6 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
     const formData = new FormData();
     formData.append("file", file);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
     try {
       const res = await fetch(`${apiBase}/api/v1/shoplifting/upload-video`, {
         method: "POST",
@@ -237,6 +286,9 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
       }
       const data = await res.json();
       setUploadedVideoPath(data.path);
+      // Switch the viewport to the uploaded clip; otherwise an active RTSP stream
+      // would keep precedence and the uploaded video would appear to do nothing.
+      setSourceType("sample");
       setUploadError(null);
     } catch (err: any) {
       setUploadError(err.message || "Upload failed");
@@ -250,7 +302,6 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
     setProcessing(true);
     setProcessResult(null);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
     try {
       const res = await fetch(`${apiBase}/api/v1/shoplifting/process-video`, {
         method: "POST",
@@ -293,7 +344,11 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
               <span className={`relative inline-flex rounded-full h-3 w-3 ${isAlarming ? "bg-red-500" : "bg-emerald-500"}`}></span>
             </span>
             <span className="font-semibold text-sm tracking-wide">
-              {sourceType === "webcam" ? "Live Local Webcam" : "Warehouse Bay A (Simulated Sample Feed)"}
+              {sourceType === "webcam"
+                ? "Live Local Webcam"
+                : sourceType === "rtsp"
+                ? "Live RTSP / Edge Stream"
+                : "Warehouse Bay A (Simulated Sample Feed)"}
             </span>
           </div>
           <span className="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
@@ -309,13 +364,27 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         {/* Action Buttons — hidden when viewing uploaded video */}
         {!uploadedVideoPath && (
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSourceType(sourceType === "sample" ? "webcam" : "sample")}
-            className="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded text-slate-200 flex items-center gap-1 transition"
-          >
-            {sourceType === "sample" ? <Video className="w-3.5 h-3.5 text-blue-400" /> : <Camera className="w-3.5 h-3.5 text-emerald-400" />}
-            {sourceType === "sample" ? "Switch to Webcam" : "Switch to Sample Clip"}
-          </button>
+          <div className="flex items-center rounded-lg bg-slate-800 p-0.5">
+            {(["sample", "webcam", "rtsp"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => {
+                  setStreamError(null);
+                  setSourceType(mode);
+                }}
+                className={`text-xs px-2.5 py-1 rounded-md flex items-center gap-1 transition ${
+                  sourceType === mode
+                    ? "bg-slate-700 text-white font-semibold"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {mode === "sample" && <Video className="w-3.5 h-3.5" />}
+                {mode === "webcam" && <Camera className="w-3.5 h-3.5" />}
+                {mode === "rtsp" && <RefreshCw className="w-3.5 h-3.5" />}
+                {mode === "sample" ? "Sample" : mode === "webcam" ? "Webcam" : "RTSP"}
+              </button>
+            ))}
+          </div>
 
           <button
             onClick={() => setIsDrawing(!isDrawing)}
@@ -347,6 +416,57 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
         </div>
         )}
       </div>
+
+      {/* Live RTSP / Edge Stream Configuration */}
+      {sourceType === "rtsp" && (
+        <div className="px-4 py-3 bg-slate-950 border-b border-slate-800 flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="rtsp-url-input" className="text-xs text-slate-300 font-medium">
+              Stream source (rtsp://, http://, or 0 for server webcam)
+            </label>
+            <input
+              id="rtsp-url-input"
+              type="text"
+              value={streamUrl}
+              onChange={(e) => setStreamUrl(e.target.value)}
+              placeholder="rtsp://admin:pass@192.168.1.50:554/Streaming/Channels/101"
+              className="flex-1 min-w-[240px] bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+            />
+            <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={annotateYolo}
+                onChange={(e) => setAnnotateYolo(e.target.checked)}
+                className="accent-emerald-500"
+              />
+              YOLOv8 boxes
+            </label>
+            <button
+              onClick={() => {
+                setStreamError(null);
+                setActiveStreamUrl(streamUrl.trim() || "0");
+              }}
+              className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-medium transition"
+            >
+              Connect Stream
+            </button>
+            <button
+              onClick={captureStreamSnapshot}
+              disabled={snapshotBusy}
+              className={`text-xs px-3 py-1.5 rounded font-medium transition ${
+                snapshotBusy
+                  ? "bg-slate-600 text-slate-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-500 text-white"
+              }`}
+            >
+              {snapshotBusy ? "Capturing…" : "Capture Evidence Snapshot"}
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            The edge/API agent decodes the stream and annotates frames with YOLOv8; the browser receives MJPEG.
+          </p>
+        </div>
+      )}
 
       {/* Video Upload Section */}
       <div className="px-4 py-3 bg-slate-950 border-b border-slate-800">
@@ -413,7 +533,20 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
 
       {/* Video Viewport with Canvas Overlay */}
       <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
-        {sourceType === "webcam" ? (
+        {sourceType === "rtsp" ? (
+          /* Live MJPEG stream annotated server-side by YOLOv8 */
+          // eslint-disable-next-line @next/next/no-img-element -- MJPEG multipart streams cannot go through next/image
+          <img
+            src={mjpegStreamUrl}
+            alt={`Live stream for ${cameraId}`}
+            onError={() =>
+              setStreamError(
+                "Could not open the MJPEG stream. Verify the API is running on port 8000 and the RTSP/HTTP source is reachable."
+              )
+            }
+            className="w-full h-full object-cover"
+          />
+        ) : sourceType === "webcam" ? (
           <video
             ref={videoRef}
             autoPlay
@@ -468,6 +601,12 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
             isAlarming={isAlarming}
           />
         )}
+
+        {streamError && (
+          <div className="absolute inset-x-4 bottom-4 z-10 rounded-md border border-red-500/40 bg-red-950/90 px-3 py-2 text-xs text-red-200">
+            {streamError}
+          </div>
+        )}
       </div>
 
       {/* Footer Instructions */}
@@ -481,7 +620,7 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({
           </span>
         </div>
         <button
-          onClick={() => emitCandidateEvent()}
+          onClick={() => (sourceType === "rtsp" ? captureStreamSnapshot() : emitCandidateEvent())}
           className="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1"
         >
           <Play className="w-3 h-3" /> Log Manual Event

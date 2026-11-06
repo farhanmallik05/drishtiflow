@@ -2,7 +2,7 @@
 **Milestone:** R0 — Hackathon Prototype (Build with Bharat 5.0)  
 **Governing Document:** [DrishtiFlow_Enhanced_PRD_v3_EMPTY.md](file:///d:/hackathon/Build%20with%20Bharat/DrishtiFlow_Enhanced_PRD_v3_EMPTY.md)  
 **Plan Rule:** [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLAN_RULE.md)  
-**Last Updated:** 2026-11-04T19:47:00+05:30
+**Last Updated:** 2026-11-06T01:24:00+05:30
 
 ---
 
@@ -20,7 +20,7 @@
 |---|---|:---:|:---:|:---:|:---:|
 | **Track 0: Project Setup & Plan System** | Farhan | 3 | 3 | 0 | 0 |
 | **Track 1: Monorepo & Shared Schemas** | Farhan | 4 | 4 | 0 | 0 |
-| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 5 | 5 | 0 | 0 |
+| **Track 2: Camera Ingestion & Edge Vision** | Kartikey | 4 | 4 | 0 | 0 |
 | **Track 3: Context Verification Engine** | Ankit | 4 | 4 | 0 | 0 |
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 7 | 7 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
@@ -117,26 +117,6 @@
   - **Acceptance Criteria:** Walking into the drawn polygon triggers a candidate event payload with bounding box and timestamp.
   - **Validation Evidence:** Implemented in `CameraPreview.tsx` and validated in `services/edge-agent/tests/test_edge_agent.py` (4/4 passed).
   - **Completed Date:** 2026-11-04
-
-- [x] **`TSK-D2-05`**: Real YOLOv8n Edge Inference on Live CCTV Footage.
-  - **Dependencies:** `TSK-D2-04`
-  - **Scope:** Replace mock `yolov8n` labels with live Ultralytics YOLOv8n inference; filter `person` class; normalize bboxes to [0,1]; route detections through existing `EdgeDetector` zone PiP + `DwellTracker` (1.5s) -> `CandidateEventEmitter` to FastAPI backend. Download and test against real incident video footage.
-  - **Acceptance Criteria:** `YOLOEdgeDetector` loads `yolov8n.pt`, runs at ≥20 FPS on CPU, emits candidate events for real persons dwelling in a restricted zone; full pipeline verified end-to-end against live API.
-  - **Validation Evidence:** `services/edge-agent/inference/yolo_detector.py` created; real CCTV clip downloaded to `services/edge-agent/assets/videos/`; YOLO measured at 27.5 FPS CPU (36 ms/frame); full video pipeline run emitted candidate events to live `GET/POST /api/v1/events/candidates`; new test file `services/edge-agent/tests/test_yolo_detector.py` added.
-  - **Completed Date:** 2026-11-04
-
-- [x] **`TSK-D2-06`**: Shoplifting Detection with Entry/Exit Logging & Pandas CSV Log.
-  - **Dependencies:** `TSK-D2-01`, `TSK-D2-04`, `TSK-D2-05`
-  - **Owner:** Kartikey (implemented by agent on user request)
-  - **Scope:** Add `ShopliftMonitor` in `services/edge-agent/tracking/shoplift_monitor.py` that composes the existing YOLOv8n person detector + zone PiP filter to track persons across frames, record shop entry_time and exit_time, flag suspected theft (person dwells near shelves/items then exits the shop zone), capture one evidence photo (person crop JPEG) per incident, and append a row to a pandas DataFrame persisted as `shop_theft_log.csv` (track_id, camera_id, entry_time, exit_time, duration_seconds, shelf_interaction, theft_suspected, detector_confidence, photo_path, logged_at). Add demo pipeline runner `services/edge-agent/tools/run_shoplift_pipeline.py` and unit tests `services/edge-agent/tests/test_shoplift_monitor.py`.
-  - **Acceptance Criteria:** Monitor processes a video and produces a pandas DataFrame/CSV with one row per person containing entry time, exit time, and one evidence photo path; theft_suspected flagged when shelf interaction precedes exit; DataFrame `to_dataframe()` and `save_dataframe()` work; unit tests pass.
-  - **Validation Evidence:**
-    - `services/edge-agent/tests/test_shoplift_monitor.py`: 7/7 unit tests pass (entry/exit times, theft flag logic, one photo per incident, DataFrame columns/types, CSV export, multi-person rows).
-    - `pytest services/edge-agent/tests/ services/api/tests/ -q`: 48/48 passed (no regressions).
-    - End-to-end smoke on real CCTV footage: pipeline produced `shop_theft_log.csv` (119 rows, 22 theft_suspected=True, 22 evidence photos) + JPEG crops in `assets/evidence/`.
-    - `POST /api/v1/shoplifting/process-video` returns 200 OK with `records_found` and `thefts_suspected` counts.
-  - **Completed Date:** 2026-11-05
-  - **Git/File Ref:** `services/edge-agent/tracking/shoplift_monitor.py`, `services/edge-agent/tools/run_shoplift_pipeline.py`, `services/edge-agent/tests/test_shoplift_monitor.py`
 
 ---
 
@@ -241,7 +221,6 @@
     - Interactive 3D scene, voice commands, and multi-camera views tested locally.
   - **Completed Date:** 2026-11-06
   - **Git/File Ref:** `LandingPage/`
-
 ---
 
 ### Track 5: Policy Engine & Action Worker (Owner: Kaushendra)
@@ -306,12 +285,88 @@
   - **Validation Evidence:** Offline fallback mock mode documented in `plan/ARCHITECTURE.md` and integrated into UI.
   - **Completed Date:** 2026-11-04
 
-- [x] **`TSK-D6-05`**: Full-Workspace Audit & Live API Smoke Test (external review session).
-  - **Dependencies:** All tracks
-  - **Scope:** Independently re-verify all R0 claims: run full pytest suites, ESLint, Next.js production build, and a live uvicorn smoke test walking compile → workflow create/activate → camera/zone → candidate event → verify → policy → dispatch; probe all GET endpoints and 404 handling.
-  - **Acceptance Criteria:** All suites pass; every `GET` collection endpoint returns 200; end-to-end pipeline dispatches without error in a live server run.
-  - **Validation Evidence:** 37/37 pytest passed in 11.95s; lint clean; `next build` success (102 kB First Load JS); live E2E event flow reached `verified=confirmed → policy=approved → status=action_sent` with sandbox WhatsApp dispatch. Two production bugs found during smoke test are resolved under `TSK-D6-06`.
-  - **Completed Date:** 2026-11-04
+---
+
+## Milestone R1: Supervised Pilot MVP — Acceptance Criteria & Blocker Clearance Track (Owner: All)
+
+This track governs the resolution of the ten non-negotiable Pilot Release Blockers ([BLOCKER-01] to [BLOCKER-10]) established in PRD §20.3 and evaluated in [`plan/WORKFLOW_AUDIT_REPORT.md`](file:///d:/hackathon/Build%20with%20Bharat/plan/WORKFLOW_AUDIT_REPORT.md).
+
+- [ ] **`TSK-R1-01`**: 30-Minute Continuous Stability Soak Test on Physical Hardware.
+  - **Dependencies:** `TSK-D6-01`
+  - **Scope:** Execute uninterrupted 30-minute monitoring session on NVIDIA Jetson or Intel N100; profile RSS memory heap and CPU load every 30s.
+  - **Acceptance Criteria (Clears BLOCKER-01):** Zero unhandled process exits; memory heap growth between minute 5 and minute 30 < 5%; frame processing rate maintains ≥ 20 FPS throughout.
+
+- [~] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
+  - **Dependencies:** `TSK-D2-01`
+  - **Scope:** Replace browser canvas and mock stream dictionaries with physical RTSP stream decoding via OpenCV and live YOLOv8n TensorRT/ONNX inference.
+  - **Acceptance Criteria (Clears BLOCKER-02):** Genuine computer vision inference executing on raw camera frame tensors at ≥ 20 FPS with per-frame latency ≤ 45ms.
+
+   - **Progress (2026-11-06):** `StreamIngestion` now decodes real RTSP/HTTP/file/webcam sources with bounded-backoff reconnect and MJPEG yield; the API exposes `GET /api/v1/cameras/{id}/stream` and `/snapshot` with frame-strided YOLOv8 annotation; the web preview has an RTSP mode with URL bar, YOLO toggle and evidence snapshot. Verified with a local MP4: snapshot returned a 41 KB JPEG and the MJPEG generator produced valid multipart frames. Still open: Ultralytics is not installed in this environment, so the 2 YOLO edge tests skip and no live-model latency/FPS numbers exist; no physical RTSP camera or 20 FPS soak has been executed.
+
+- [ ] **`TSK-R1-03`**: Real-Time Camera Heartbeat Watchdog & 15s Degradation UI.
+  - **Dependencies:** `TSK-D2-04`
+  - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
+  - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
+
+- [~] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration & Image-Based Evaluation Harness.
+  - **Dependencies:** `TSK-D3-02`
+  - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules; create 10-case labeled image dataset with metrics (precision, recall, false positive/negative rates).
+  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`); missing evidence, provider errors, malformed output, and schema failures safely yield `processing_failed`; separately configured integration tests use labeled real imagery. Synthetic drawings do not establish real-world accuracy.
+  - **Current Finding (2026-11-05):** The current evaluation harness generates synthetic drawings, allows `processing_failed`, and follows runtime provider configuration; it is not evidence of genuine visual accuracy. Python is unavailable in this execution environment, so live-provider and regression tests could not be rerun. Keep this task in progress.
+
+- [~] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
+  - **Dependencies:** `TSK-D1-04`
+  - **Scope:** Integrate live Groq API (`qwen/qwen3.8-27b`) with JSON mode; support Hindi, Hinglish, and English; validate against `WorkflowDefinition`; enforce allowlists; provide explicit fallback reporting.
+  - **Acceptance Criteria:** Real Groq requests return schema-valid workflows; incomplete rules trigger clarification questions; missing/invalid keys gracefully fall back with explicit metadata; allowlists enforce detector classes and action items.
+  - **Current Finding (2026-11-05):** Provider integration and tests are present, but cannot be rerun here because Python is unavailable. Existing live-call evidence remains recorded in the historical changelog and requires a reproducible configured run before this task is closed.
+
+### R0 Demo Reliability Addendum
+
+- [~] **TSK-R1-12**: Evidence Capture and Bounded Context Verification.
+  - **Owner:** Kartikey / Ankit
+  - **Scope:** Ensure candidate events persist either a prompt camera keyframe or a clearly labeled generated placeholder; bound OpenCV snapshot attempts and all VLM verification to the demo latency budgets.
+  - **Acceptance Criteria:** Missing evidence is filled without blocking the event route for more than 500 ms; provider errors and timeouts return the five-state verification contract and never trigger actions as confirmed.
+  - **Validation Evidence:** Pending focused API checks for missing evidence, invalid camera, and verifier timeout/provider error.
+- [~] **TSK-R1-13**: Live Event Feed and Bharat Policy Presets.
+  - **Owner:** Piyush
+  - **Scope:** Poll incidents every 2.5 seconds, refresh immediately after a candidate event, render evidence thumbnails and verification state, and provide the three requested Kirana / Warehouse / ATM rule presets.
+  - **Acceptance Criteria:** New persisted incidents appear without reload; event cards show image evidence, confidence, status, and verifier reasoning; each preset fills and compiles its stated prompt.
+  - **Validation Evidence:** Pending TypeScript compilation and frontend build.
+- [~] **TSK-R1-14**: One-Command Local Demo Launcher.
+  - **Owner:** Farhan
+  - **Scope:** Add start_demo.py to initialize the local API database, seed the default demo camera and zone when appropriate, start FastAPI and Next.js together, and stop child processes cleanly.
+  - **Acceptance Criteria:** python start_demo.py starts both services with readable logs; Ctrl+C shuts both down; existing camera data is preserved.
+  - **Validation Evidence:** Pending isolated launcher smoke check that does not modify the user's existing SQLite database.
+
+- [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
+  - **Dependencies:** `TSK-D5-03`
+  - **Scope:** Configure live Meta WhatsApp Business API credentials; execute physical intrusion test alert to consenting destination handset.
+  - **Acceptance Criteria (Clears BLOCKER-05):** Message physically received on mobile handset within ≤ 3.0 seconds; Meta message ID persisted in `actions` table.
+
+- [ ] **`TSK-R1-06`**: JWT Authentication & RBAC Authorization Middleware.
+  - **Dependencies:** `TSK-INIT-03`
+  - **Scope:** Implement FastAPI OAuth2 Bearer token authentication middleware; protect all `/api/v1/*` routes; enforce Admin, Supervisor, and Viewer role permissions.
+  - **Acceptance Criteria (Clears BLOCKER-06):** Unauthenticated requests rejected with HTTP 401; endpoints verify user role permissions; zero client-side credentials.
+
+- [ ] **`TSK-R1-07`**: Multi-Tenant Query Scoping & Adversarial Cross-Org Isolation Tests.
+  - **Dependencies:** `TSK-R1-06`
+  - **Scope:** Extract `organization_id` from authenticated JWT tokens; enforce SQL query scoping on all database operations; write automated cross-tenant security test suite.
+  - **Acceptance Criteria (Clears BLOCKER-07):** Token from Org A cannot read or write cameras, rules, or incidents belonging to Org B (returns HTTP 404/403).
+
+- [ ] **`TSK-R1-08`**: Encrypted Evidence Storage & DPDP Automated Purge Daemon.
+  - **Dependencies:** `TSK-D4-01`
+  - **Scope:** Implement S3/Cloud Storage integration with AES-256 encryption at rest; build daily background worker purging keyframes older than retention window (7–30 days).
+  - **Acceptance Criteria (Clears BLOCKER-08):** Continuous video discarded locally; incident snapshots encrypted at rest; automated purge verified by audit log.
+
+- [ ] **`TSK-R1-09`**: Edge Local SQLite Queue Buffer & WAN Interruption Resilience.
+  - **Dependencies:** `TSK-D2-03`
+  - **Scope:** Implement local SQLite disk queue on edge daemon to cache candidate event envelopes during internet outages; auto-flush queue upon WAN reconnection.
+  - **Acceptance Criteria (Clears BLOCKER-09):** Disconnecting edge network for 3 minutes results in zero dropped incidents; backlog flushes without triggering duplicate alerts.
+
+- [ ] **`TSK-R1-10`**: Multi-Site Empirical Benchmark Dataset & SLA Measurement.
+  - **Dependencies:** `TSK-D6-03`
+  - **Scope:** Deploy across 2–3 pilot warehouse sites; collect 100+ annotated real footage events; measure precision, recall, and end-to-end latency.
+  - **Acceptance Criteria (Clears BLOCKER-10):** Labeled empirical evaluation achieves Precision ≥ 90.0%, Recall ≥ 90.0%, and p95 latency ≤ 3.5s.
 
 - [x] **`TSK-D6-06`**: Fix 500s on `GET /api/v1/incidents` & `GET /api/v1/cameras` (legacy-row resilience) + purge demo DB test debris.
   - **Dependencies:** `TSK-D6-05`
@@ -353,13 +408,6 @@
   - **Acceptance Criteria:** Fall Monitor tab renders; shows per-camera fall status; countdown timer decrements; emergency button triggers dispatch; UI passes lint/build.
   - **Validation Evidence:** Frontend ESLint clean; Next.js build succeeds; Fall Monitor component integrated into page.tsx with tab navigation.
   - **Completed Date:** 2026-11-06
-
-- [ ] **`TSK-R1-06`**: Fall Detection End-to-End Test Suite.
-  - **Dependencies:** All R1 tasks
-  - **Scope:** Full pipeline test: video → pose detection → fall state machine → emergency trigger → hospital reception dispatch. Test with simulated fallen person video footage. Verify 3-5s timer accuracy.
-  - **Acceptance Criteria:** E2E test passes; fall detected within 3-5s of person going down; hospital reception alert dispatched; incident persisted; false positives minimized (person bending down briefly = no alert).
-  - **Validation Evidence:** (pending)
-  - **Completed Date:** (pending)
 
 - [x] **`TSK-R1-05`**: Fall Detection API Router & Endpoints.
   - **Dependencies:** `TSK-R1-02`, `TSK-D1-03` (FastAPI Backend Skeleton)
