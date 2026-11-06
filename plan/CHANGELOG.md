@@ -9,23 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Fall Detection & Hospital Emergency Dispatch — USP (R1 Supervised Pilot MVP)**:
-  - `TSK-R1-01` (DONE): Pose Estimation Model Integration (YOLOv8n-Pose) — `services/edge-agent/inference/yolo_pose_detector.py` extracts body keypoints (nose, shoulders, hips, knees, ankles) with posture classification (standing vs fallen).
-  - `TSK-R1-02` (DONE): Fall State Machine with 3-5 Second Timer — `services/edge-agent/tracking/fall_monitor.py` with states: standing → fallen_detected → emergency_trigger → standing. Timer boundary tested (2.9s=no alert, 3.0s=alert).
-  - `TSK-R1-03` (DONE): Hospital Reception Emergency Dispatch — `POST /api/v1/fall-monitor/emergency` dispatches hospital reception alert with idempotency key, bypasses standard cooldown.
-  - `TSK-R1-05` (DONE): Fall Detection API Router — `services/api/app/routers/fall_monitoring.py` with `GET /api/v1/fall-monitor`, `POST /api/v1/fall-monitor/events`, `POST /api/v1/fall-monitor/emergency`. Registered in `services/api/app/main.py`.
-  - `services/edge-agent/tests/test_fall_monitor.py` — 9 tests passing (state machine, timer boundaries, multi-person tracking).
-  - `services/edge-agent/tests/test_yolo_pose_detector.py` — 7 tests passing (keypoint names, fallen/vertical classification, missing keypoints safe default, normalization).
-- `TSK-R1-04` (DONE): Fall Monitor UI Tab (`apps/web/src/components/incidents/FallMonitor.tsx`) — per-camera fall status, red outline when fallen, countdown timer (3s), manual emergency button, polls every 2s. Integrated into `apps/web/src/app/page.tsx` tab navigation.
-- `TSK-R1-06` (PENDING): Fall Detection End-to-End Test Suite — full pipeline test with synthetic fallen-person footage.
+- **Frontend Migration — LandingPage from GitHub (`apps/web/`)**:
+  - Replaced Next.js frontend with Vite + React + Tailwind CSS LandingPage from `farhanmallik05/drishtiflow` GitHub repo.
+  - Features: Landing page with hero section, 3D camera preview, shoplifting/police demo, 3-pillar architecture, competitor benchmark table, team attribution.
+  - Dashboard: Overview, Live Cameras, AI Detection, Emergency Center, Voice Assistant, Automation Rules, Notifications, History, Analytics, Camera Management, Settings.
+  - Full backend integration: API calls to `http://localhost:8000` for health, incidents, shoplifting, fall monitoring, etc.
+  - 105 kB First Load JS bundle.
 
-### Verified
-- `pytest services/api/tests services/edge-agent/tests -q`: **65/65 passed** in 16.43s (17 new fall detection tests + existing 48).
-- Live server tested: `POST /api/v1/fall-monitor/events` → 201, `GET /api/v1/fall-monitor` → 200 with active falls, `POST /api/v1/fall-monitor/emergency` → 201 with hospital reception dispatch.
-- `npm run lint --workspace=apps/web`: 0 errors 0 warnings.
-- `npm run build --workspace=apps/web`: success, 105 kB First Load JS.
-
----
+### Fixed
+- **Frontend migration**: Replaced Next.js apps/web with Vite + React LandingPage from GitHub repo (farhanmallik05/drishtiflow)
+- All API endpoints connect to backend at http://localhost:8000
 
 ---
   - `ShopliftMonitor` composes the existing YOLOv8n person detector + zone point-in-polygon filter to track persons across frames.
