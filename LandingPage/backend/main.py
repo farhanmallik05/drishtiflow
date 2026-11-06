@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 app = FastAPI(
     title="DRISHTI FLOW API",
     description="AI-Powered Smart Surveillance & Emergency Detection Backend Engine",
-    version="2.6.0"
+    version="5.0.0"
 )
 
 # CORS Middleware
@@ -132,7 +132,7 @@ def read_root():
         "platform": "DRISHTI FLOW",
         "tagline": "See Everything. Detect Instantly. Respond Intelligently.",
         "status": "ONLINE",
-        "version": "2.6.0",
+        "version": "5.0.0",
         "neural_engine": "YOLOv10-XL + HRNet-Pose Active",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }

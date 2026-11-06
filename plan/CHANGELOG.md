@@ -50,6 +50,9 @@ pm run lint --prefix apps/web passed with 0 warnings and 0 errors.
 ### Runtime
 - **Demo runtime repair:** Restored the Vite Landing Page frontend, removed stale Next.js entry/config files that were being picked up by TypeScript/PostCSS, configured Vite to use port 3000, synchronized dependencies, and verified the landing page with the API on port 8000.
 
+### Changed
+- **Version Stamp Alignment (`v 5.0`)**: Updated platform version badge and sidebar tag from `v2.6` to `v 5.0` across the application (`LandingPage/src/components/landing/LandingPage.tsx`, `LandingPage/src/App.tsx`, and `LandingPage/backend/main.py`).
+
 ### Added
 - **Futuristic 3D Landing Page & Smart Surveillance Operations Platform (`LandingPage`)** (`TSK-FE-05`):
   - 3D Interactive Surveillance Camera scene with Three.js (pan-tilt turret, glowing optical lens, holographic scanning laser, floating particle field, mouse tracking).

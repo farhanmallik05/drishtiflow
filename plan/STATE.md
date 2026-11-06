@@ -1,10 +1,9 @@
 # DrishtiFlow Project State
 
-**Last Updated:** 2026-11-06T12:05:00+05:30
-**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection USP & Blocker Clearance) & 3D Tactical Surveillance Platform  
+**Last Updated:** 2026-11-06T13:25:00+05:30  
+**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection & Hospital Emergency Dispatch — USP) & 3D Tactical Surveillance Platform  
 **Next Milestone:** Milestone R2 — Multi-Site Operations  
-**GitHub Repository:** 
-arhanmallik05/drishtiflow  
+**GitHub Repository:** `farhanmallik05/drishtiflow`  
 **Overall System Health:** 🟢 GREEN / 100% DEMO READY / ZERO-ERROR PIPELINE (FastAPI & Next.js 14 Command Center live verified; 111/111 Pytest tests passed; Next.js 4/4 static pages generated with 0 lint errors; 3D Showcase in LandingPage/)
 **Active Task:** TSK-R1-14 — One-Command Hackathon Demo Launcher (start_demo.py) & Live Demo Hardening.
 

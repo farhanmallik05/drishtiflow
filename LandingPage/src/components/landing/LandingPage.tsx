@@ -124,7 +124,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterDashboard }) =>
                   (दृष्टि-फ़्लो)
                 </span>
                 <span className="hidden md:inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 font-bold border border-orange-200">
-                  v2.6 Bharat AI
+                  v 5.0 Bharat AI
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium truncate max-w-sm sm:max-w-none">

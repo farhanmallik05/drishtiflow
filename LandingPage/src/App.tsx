@@ -354,7 +354,7 @@ export function App() {
 
           {/* Bottom Sidebar Collapse Toggle */}
           <div className="p-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-            {!sidebarCollapsed && <span className="font-bold text-slate-600">DRISHTIFLOW v2.6</span>}
+            {!sidebarCollapsed && <span className="font-bold text-slate-600">DRISHTIFLOW v 5.0</span>}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition cursor-pointer mx-auto border border-slate-200"
