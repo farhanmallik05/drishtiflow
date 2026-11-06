@@ -6,6 +6,7 @@ from ..schemas.incident import IncidentResponse, FeedbackCreate
 from ..schemas.verification import VerificationRequest, VerificationResult
 from ..services.verifier import verify_context
 from ..database import get_db
+from ..services.evidence import decrypt_evidence
 
 router = APIRouter(prefix="/api/v1/incidents", tags=["Incidents & Operator Feedback"])
 
@@ -38,7 +39,7 @@ def list_incidents(limit: int = 50):
             detector_confidence=r["detector_confidence"],
             verifier_confidence=r["verifier_confidence"],
             reason=r["reason"],
-            evidence_frame_base64=r["evidence_frame_base64"],
+            evidence_frame_base64=decrypt_evidence(r["evidence_frame_base64"]),
             evidence_url=r["evidence_url"],
             occurred_at=r["occurred_at"],
             created_at=r["created_at"]
@@ -70,8 +71,11 @@ def get_incident(incident_id: str):
 
     conn.close()
 
+    incident = dict(inc)
+    incident["evidence_frame_base64"] = decrypt_evidence(incident["evidence_frame_base64"])
+
     return {
-        "incident": dict(inc),
+        "incident": incident,
         "actions": actions,
         "feedback": feedback
     }
@@ -88,7 +92,7 @@ async def trigger_verification(incident_id: str, req: VerificationRequest):
         raise HTTPException(status_code=404, detail="Incident not found")
 
     result = await verify_context(
-        evidence_frame_base64=req.evidence_frame_base64 or inc["evidence_frame_base64"],
+        evidence_frame_base64=req.evidence_frame_base64 or decrypt_evidence(inc["evidence_frame_base64"]),
         verification_instruction=req.verification_instruction,
         event_type=req.event_type or inc["event_type"],
         detector_confidence=inc["detector_confidence"]
@@ -153,4 +157,3 @@ def submit_feedback(incident_id: str, fb: FeedbackCreate):
         "label": fb.label,
         "created_at": now
     }
-

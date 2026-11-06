@@ -18,12 +18,8 @@ flowchart LR
 
 | Milestone | Target Audience | Scope Summary | Exit Criteria / Gates | Status |
 |---|---|---|---|:---:|
-| **R0: Hackathon Prototype** | Hackathon Judges & Early Adopters | Single-camera webcam/sample clip, Hindi/English compiler, zone polygon trigger, VLM verification, dashboard alert, test WhatsApp/voice call. | 12/12 unit and integration tests passing; Next.js 14 production build verified; 0.68s E2E latency. | 🟢 **COMPLETED** |
-<<<<<<< HEAD
-| **R1: Supervised Pilot MVP** | 2–3 Supervised Warehouse Sites | Next.js frontend, FastAPI backend, PostgreSQL DB, local RTSP agent, MediaMTX WebRTC bridge, JWT auth, encrypted evidence storage, live VLM & WhatsApp integrations. | **Clear all 10 Non-Negotiable Release Blockers (BLOCKER-01 to BLOCKER-10)**: 30-min continuous stability test (<5% heap growth); live YOLOv8n inference on real frames; 15s camera disconnect detection; live Gemini verification; physical WhatsApp delivery receipt; JWT auth + multi-tenant isolation; encrypted evidence retention/deletion; offline edge buffer resilience; measured precision/recall ≥ 90%, p95 latency ≤ 3.5s. | 🟠 ACTIVE |
-=======
-| **R1: Supervised Pilot MVP** | 2–3 Supervised Warehouse Sites | Next.js frontend, FastAPI backend, Supabase DB, local RTSP agent, **fall detection with pose estimation**, emergency hospital reception dispatch, event deduplication, full audit trail. | 30-minute uninterrupted monitoring on test hardware; p95 latency ≤ 5s; zero false emergency claims; fall detection with 3-5s trigger verified. | 🟢 **IN PROGRESS** |
->>>>>>> a93e41167a71311a65572950d6bf4f07502b05ab
+| **R0: Hackathon Prototype** | Hackathon Judges & Early Adopters | Single-camera webcam/sample clip, Hindi/English compiler, zone polygon trigger, VLM verification, dashboard alert, test WhatsApp/voice call. | Current API and targeted edge test evidence is recorded in `plan/STATE.md`; Next.js 14 production build is verified. Historical latency claims are not treated as current evidence. | 🟢 **COMPLETED** |
+| **R1: Supervised Pilot MVP** | 2–3 Supervised Warehouse Sites | Next.js frontend, FastAPI backend, SQLite/PostgreSQL DB, local RTSP agent, **fall detection with pose estimation**, hospital emergency reception dispatch, MediaMTX WebRTC bridge, JWT auth, encrypted evidence storage, live VLM & WhatsApp integrations. | **Clear all 10 Pilot Release Blockers (BLOCKER-01 to BLOCKER-10)**: 30-min continuous stability test (<5% heap growth); live YOLOv8n inference on real frames; 15s camera disconnect detection; live Gemini verification; physical WhatsApp delivery receipt; JWT auth + multi-tenant isolation; encrypted evidence retention/deletion; offline edge buffer resilience; measured precision/recall ≥ 90%, p95 latency ≤ 3.5s; fall detection with 3-5s trigger verified. | 🟡 **IN PROGRESS** |
 | **R2: Multi-Site Operations** | Multi-unit MSMEs & Logistics Hubs | Organization/site/camera hierarchy, role-based access control (Admin, Supervisor, Viewer), evidence retention policies, usage quotas. | Tenant data isolation certified; evidence encryption validated; audit log completeness verified. | ⚪ UPCOMING |
 | **R3: Enterprise Integrations** | CCTV Installers & System Integrators | Webhook notifications, external NVR/DVR ingestion bridges, automated device heartbeat telemetry, multi-channel messaging adapters. | Third-party webhook delivery rate ≥ 99%; camera auto-discovery certified. | ⚪ UPCOMING |
 | **R4: Advanced Intelligence** | Specialized Industrial & Clinical Sites | Custom fine-tuned models (site-specific PPE, temporal fall persistence state machine, smoke/thermal candidates), model governance. | Dataset-backed evaluation showing precision/recall meeting agreed safety thresholds on real footage. | ⚪ UPCOMING |
@@ -102,7 +98,7 @@ The R0 Hackathon Prototype delivery is structured into 10 cohesive engineering m
 - [x] Evaluation benchmark run against 10 pre-labeled test clips (warehouse intrusion, shadows, pets).
 - [x] Measure and document: Precision (100%), Recall (100%), end-to-end latency (680ms).
 - [x] Rehearse 3-minute pitch narrative (Problem -> Vernacular setup -> Edge trigger -> Context verify -> Action).
-- [x] Automated end-to-end integration test suite (`test_e2e_pipeline.py`) passing in 0.68s.
+- [x] Automated end-to-end integration test suite (`test_e2e_pipeline.py`) passing in the historical R0 run; current test evidence is recorded in `plan/STATE.md`.
 - **Exit Gate:** Flawless live rehearsal with zero manual workarounds and complete planning evidence. *(VERIFIED)*
 
 ### R0 Demo Reliability Addendum (Active)

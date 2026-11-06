@@ -1357,7 +1357,7 @@ The development of DrishtiFlow is governed by a strict milestone framework trans
 | **M7: Incident Lifecycle** | Persisted database & operator feedback | SQLite/Postgres schema; live incident feed; ground-truth operator labeling loop. *(VERIFIED)* |
 | **M8: Policy & Dispatcher** | Deterministic governance & actions | 60s cooldown; 5/hr rate limit; SHA-256 deduplicated WhatsApp/Vapi adapters. *(VERIFIED)* |
 | **M9: Reliability & Autonomy** | Fault injection & backoff retries | Safe degradation; camera disconnect simulation; bounded exponential retries. *(VERIFIED)* |
-| **M10: Evaluation & Pitch** | Benchmark evaluation & live delivery | 10-clip test set (100% precision/recall); 0.77s E2E latency; 35/35 tests passing. *(VERIFIED)* |
+| **M10: Evaluation & Pitch** | Benchmark evaluation & live delivery | Historical R0 target evidence: 10-clip synthetic test set, 0.77s E2E latency, and 35/35 tests passing. Current real-world accuracy remains an R1 acceptance gate. |
 
 ---
 

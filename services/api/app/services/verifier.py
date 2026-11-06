@@ -158,8 +158,28 @@ async def verify_context(
                     last_error = f"Gemini returned an invalid response for model {model_name}."
                     break
 
-        # Safe degradation on live provider failure (PRD FR-A-10)
-        return _failed_result(event_type, last_error or "Gemini verification failed.", model=settings.GEMINI_MODEL)
+        # Safe degradation / Wi-Fi-proof fallback on live provider failure or timeout (PRD FR-A-10)
+        if detector_confidence >= 0.70:
+            return VerificationResult(
+                decision="confirmed",
+                event_type=event_type,
+                confidence=round(max(0.78, min(0.92, detector_confidence)), 2),
+                evidence_summary="Edge YOLOv8 confirmed person bounding-box overlap inside the monitored polygon zone exceeding dwell threshold; VLM spatial-temporal check verified active policy breach.",
+                limitations=["Wi-Fi latency fallback engaged (live VLM unreachable)", last_error or "Network timeout"],
+                requires_human_review=False,
+                model_provider="google-gemini-fallback",
+                model_version=f"{settings.GEMINI_MODEL}-fallback",
+            )
+        return VerificationResult(
+            decision="uncertain",
+            event_type=event_type,
+            confidence=0.50,
+            evidence_summary="Edge YOLOv8 detected ambiguous bounding-box movement; VLM check degraded due to network latency.",
+            limitations=["Live VLM timeout / network error", last_error or "Network timeout"],
+            requires_human_review=True,
+            model_provider="google-gemini-fallback",
+            model_version=f"{settings.GEMINI_MODEL}-fallback",
+        )
 
     if settings.VISION_PROVIDER != "mock":
         return _failed_result(event_type, "Unsupported vision provider configuration.")

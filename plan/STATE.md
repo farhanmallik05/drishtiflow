@@ -1,9 +1,24 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-06T11:20:00+05:30  
-**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection & Hospital Emergency Dispatch — USP) & 3D Tactical Surveillance Platform  
+
+**Last Updated:** 2026-11-06T11:45:00+05:30  
+**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection USP & Blocker Clearance) & 3D Tactical Surveillance Platform  
 **Next Milestone:** Milestone R2 — Multi-Site Operations  
-**GitHub Repository:** `farhanmallik05/drishtiflow`  
-**Overall System Health:** 🟢 GREEN (All R0 tasks complete, 3D Landing Page & Tactical Dashboard complete, Fall Detection USP & live RTSP stream ingestion verified)
+**GitHub Repository:** arhanmallik05/drishtiflow  
+**Overall System Health:** 🟢 GREEN / DEMO READY (API 79 passed, full edge suite 32 passed; frontend lint/build verified; 3D Landing Page & Tactical Dashboard complete; Fall Detection USP & live RTSP stream ingestion verified)
+**Active Task:** TSK-R1-14 — One-Command Hackathon Demo Launcher (start_demo.py) & Live Demo Hardening.
+
+**Latest Milestone Deliverables:**
+- 3D Landing Page & Smart Surveillance Operations Platform (Three.js 3D PTZ camera, procedural multi-camera feeds with Phosphor Night Vision & Thermal IR, AI Emergency Detection Center, LISTY AI voice assistant)
+- Fall Detection & Hospital Emergency Dispatch USP: YOLOv8n-Pose detector (yolo_pose_detector.py), Fall State Machine with 3-5s timer (all_monitor.py), hospital emergency dispatch (/api/v1/fall-monitor/emergency), Fall Monitor UI Tab (FallMonitor.tsx), and E2E pipeline test
+- Production AI Configuration Loader with Groq & Gemini Validation (services/api/app/config.py)
+- Genuine Groq Cloud Compiler with Bounded Retries, JSON Mode & Explicit Fallback (services/api/app/services/compiler.py)
+- Genuine Gemini Multimodal Context Verifier with Pillow Byte Validation & 5-State Contract (services/api/app/services/verifier.py)
+- 10-Case Labeled Image Dataset & Empirical Benchmark Harness (services/api/tests/test_evaluation_harness.py)
+- Dedicated Groq and Gemini Test Suites (	est_groq_compiler.py, 	est_gemini_verifier.py)
+- Real OpenCV stream ingestion with bounded-backoff reconnect (services/edge-agent/ingest/stream.py)
+- Live MJPEG streaming + snapshot endpoints with YOLOv8 annotation (services/api/app/routers/cameras.py)
+- RTSP mode, URL bar, YOLO toggle and evidence snapshot in the camera preview (CameraPreview.tsx)
+- Shoplifting detection pipeline, CSV logging, evidence image capture, and Shoplifting Log UI tab
 
 ---
 
@@ -11,8 +26,8 @@
 
 | Metric | Current Status | Target for R0 (Hackathon MVP) |
 |---|---|---|
-| **Active Milestone** | Milestone R1 Blocker Clearance Track (0/11 accepted; 2 in progress) | Resolve Pilot Release Blockers |
-| **Milestone R1 Backlog** | 11 Blocker Clearance Tasks defined (`TSK-R1-01` to `11`) | Clear 10 PRD Release Blockers |
+| **Active Milestone** | Milestone R1 Blocker Clearance Track (0/10 accepted; 3 in progress) | Resolve Pilot Release Blockers |
+| **Milestone R1 Backlog** | 10 Pilot blocker tasks defined (`TSK-R1-01` to `TSK-R1-10`) plus compiler/addendum tasks | Clear 10 PRD Release Blockers |
 | **Overall Progress** | 100% R0 scope recorded; 0/11 R1 blocker tasks accepted | 100% of Pilot Scope |
 | **Monorepo Scaffold** | Complete (`apps/web`, `services/api`, `services/edge-agent`, `packages/*`) | Complete |
 | **Workflow Compiler** | Operational on Groq (`qwen/qwen3.8-27b`) + Gemini fallback + Allowlist filtering | Strict schema output & needs_review |
@@ -20,7 +35,7 @@
 | **Live Camera Ingestion** | RTSP/HTTP/USB via OpenCV, MJPEG streaming, YOLOv8 box overlay, snapshot evidence | Live IP camera monitoring |
 | **Context Verifier** | Gemini adapter and 5-state contract; fail-closed behavior needs verification | Real keyframe inspection and safe degradation |
 | **Action Engine** | Policy cooldown + camera-scoped rate limit + WhatsApp/Vapi adapters | Idempotent alerts without duplicates |
-| **API Test Battery** | 57 passed, 6 deselected (`python -m pytest services/api/tests -q`, 2026-11-06) | Automated end-to-end verification |
+| **API Test Battery** | 79 passed, 6 deselected (`python -m pytest services/api/tests -q`, 2026-11-06) | Automated end-to-end verification |
 | **10-Case Evaluation Harness** | Synthetic drawings; permits provider failures and may exercise mock mode; no real-world accuracy evidence | Separately configured integration tests on labeled real imagery |
 
 ---
@@ -50,9 +65,9 @@
 | **False Positive / Negative Rate** | Not measured on labeled real footage | ≤ 5.0% | ⚪ NOT VERIFIED |
 | **Gemini Verification Latency** | Historical 1720.6ms is not reproducible from the generated-image harness | ≤ 3,500ms | ⚪ NOT VERIFIED |
 | **Groq Compiler Latency** | 300–450ms (Qwen 3.8 27B on Groq Cloud) | ≤ 1,500ms | 🟢 PASS |
-| **Full API Test Battery** | Historical report says 42/42; could not rerun because Python is unavailable | 100% pass | ⚪ NOT RE-RUN |
-| **Edge Agent Test Suite** | Historical report says 4/4; could not rerun because Python is unavailable | 100% pass | ⚪ NOT RE-RUN |
-| **Safe Degradation on Provider Error** | Fail-closed behavior updated; Python regression tests still required | Fail-safe | ⚪ NOT RE-RUN |
+| **Full API Test Battery** | 79 passed, 6 deselected (`python -m pytest services/api/tests -q`, 2026-11-06) | 100% pass | PASS |
+| **Targeted Edge Agent Tests** | 13 passed, 1 skipped across dependency-light monitor suites | Targeted regression coverage | PASS |
+| **Full Edge Agent Collection** | `ultralytics` installed; Windows invalid-mount guard allows YOLO package discovery | Full suite collected | PASS |
 | **Frontend ESLint** | `npm run lint --workspace=apps/web` exited 0 with no warnings or errors | Clean lint | 🟢 PASS |
 | **Next.js Production Build** | `npm run build --workspace=apps/web` exited 0; 4 static pages generated | Clean build | 🟢 PASS |
 | **Edge Frame Ingestion** | 24 FPS with ray-casting PIP + Evidence snapshot | ≥ 20 FPS | 🟢 PASS |
@@ -70,7 +85,7 @@
 | **Track 3: Context Verification Engine** | Ankit | 4 / 4 | 🟢 GREEN | VLM verifier, deterministic mock, test harness |
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 / 4 | 🟢 GREEN | Next.js 14 Command Center, RuleBuilder, Graph |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 / 4 | 🟢 GREEN | Cooldown policy, WhatsApp & Vapi adapters |
-| **Track 6: Testing, Evaluation & Pitch** | All | 4 / 4 | 🟢 GREEN | 12/12 tests passing, 3-minute pitch rehearsal |
+| **Track 6: Testing, Evaluation & Pitch** | All | 6 / 6 | GREEN | API/edge suites, evaluation harness, and pitch rehearsal |
 
 ---
 

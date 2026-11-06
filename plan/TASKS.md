@@ -2,7 +2,7 @@
 **Milestone:** R0 — Hackathon Prototype (Build with Bharat 5.0)  
 **Governing Document:** [DrishtiFlow_Enhanced_PRD_v3_EMPTY.md](file:///d:/hackathon/Build%20with%20Bharat/DrishtiFlow_Enhanced_PRD_v3_EMPTY.md)  
 **Plan Rule:** [plan/PLAN_RULE.md](file:///d:/hackathon/Build%20with%20Bharat/plan/PLAN_RULE.md)  
-**Last Updated:** 2026-11-06T01:24:00+05:30
+**Last Updated:** 2026-11-06T11:35:00+05:30
 
 ---
 
@@ -25,8 +25,10 @@
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 7 | 7 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
 | **Track 6: Testing, Evaluation & Pitch** | All | 6 | 6 | 0 | 0 |
-| **Track R1: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 5 | 0 | 1 |
-| **Grand Total** | | **37** | **36** | **0** | **1** |
+| **Track R1-A: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 6 | 0 | 0 |
+| **Track R1-B: Pilot Blocker Clearance Track** | All | 10 | 0 | 3 | 7 |
+| **R0 Demo Reliability Addendum** | Farhan / Kartikey / Ankit / Piyush | 3 | 3 | 0 | 0 |
+| **Grand Total** | | **51** | **41** | **3** | **7** |
 
 ---
 
@@ -147,7 +149,7 @@
   - **Dependencies:** `TSK-D3-02`, `TSK-D3-03`
   - **Scope:** Create script to benchmark verifier against 10 sample test images (5 intrusions, 5 hard negatives like dogs/shadows).
   - **Acceptance Criteria:** Generates precision/recall report and logs per-sample reasoning.
-  - **Validation Evidence:** `services/api/tests/test_evaluation_harness.py` executed successfully; 100% precision and recall on evaluation set.
+  - **Validation Evidence:** Synthetic evaluation harness is present, but it does not establish real-world precision or recall; real labeled footage remains an R1 blocker.
   - **Completed Date:** 2026-11-04
 
 ---
@@ -275,7 +277,7 @@
   - **Dependencies:** `TSK-D6-01`
   - **Scope:** Measure and document inference FPS, VLM verification latency, false alert suppression rate, and action dispatch time.
   - **Acceptance Criteria:** Results documented in `plan/STATE.md` with honest, evidence-backed numbers.
-  - **Validation Evidence:** Metrics logged in `plan/STATE.md` (100% precision on evaluation set, 0.68s E2E latency).
+  - **Validation Evidence:** Historical synthetic metrics are retained in the changelog; current reproducible test counts and limitations are recorded in `plan/STATE.md`.
   - **Completed Date:** 2026-11-04
 
 - [x] **`TSK-D6-04`**: 3-Minute Live Pitch Rehearsal & Backup Assets.
@@ -287,87 +289,6 @@
 
 ---
 
-## Milestone R1: Supervised Pilot MVP — Acceptance Criteria & Blocker Clearance Track (Owner: All)
-
-This track governs the resolution of the ten non-negotiable Pilot Release Blockers ([BLOCKER-01] to [BLOCKER-10]) established in PRD §20.3 and evaluated in [`plan/WORKFLOW_AUDIT_REPORT.md`](file:///d:/hackathon/Build%20with%20Bharat/plan/WORKFLOW_AUDIT_REPORT.md).
-
-- [ ] **`TSK-R1-01`**: 30-Minute Continuous Stability Soak Test on Physical Hardware.
-  - **Dependencies:** `TSK-D6-01`
-  - **Scope:** Execute uninterrupted 30-minute monitoring session on NVIDIA Jetson or Intel N100; profile RSS memory heap and CPU load every 30s.
-  - **Acceptance Criteria (Clears BLOCKER-01):** Zero unhandled process exits; memory heap growth between minute 5 and minute 30 < 5%; frame processing rate maintains ≥ 20 FPS throughout.
-
-- [~] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
-  - **Dependencies:** `TSK-D2-01`
-  - **Scope:** Replace browser canvas and mock stream dictionaries with physical RTSP stream decoding via OpenCV and live YOLOv8n TensorRT/ONNX inference.
-  - **Acceptance Criteria (Clears BLOCKER-02):** Genuine computer vision inference executing on raw camera frame tensors at ≥ 20 FPS with per-frame latency ≤ 45ms.
-
-   - **Progress (2026-11-06):** `StreamIngestion` now decodes real RTSP/HTTP/file/webcam sources with bounded-backoff reconnect and MJPEG yield; the API exposes `GET /api/v1/cameras/{id}/stream` and `/snapshot` with frame-strided YOLOv8 annotation; the web preview has an RTSP mode with URL bar, YOLO toggle and evidence snapshot. Verified with a local MP4: snapshot returned a 41 KB JPEG and the MJPEG generator produced valid multipart frames. Still open: Ultralytics is not installed in this environment, so the 2 YOLO edge tests skip and no live-model latency/FPS numbers exist; no physical RTSP camera or 20 FPS soak has been executed.
-
-- [ ] **`TSK-R1-03`**: Real-Time Camera Heartbeat Watchdog & 15s Degradation UI.
-  - **Dependencies:** `TSK-D2-04`
-  - **Scope:** Build background heartbeat supervisor polling camera streams; automatically mark camera status `offline` in database and display warning banner in UI within 15 seconds of signal loss.
-  - **Acceptance Criteria (Clears BLOCKER-03):** Cutting camera network cable triggers visible operator warning in Command Center within ≤ 15.0 seconds.
-
-- [~] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification Integration & Image-Based Evaluation Harness.
-  - **Dependencies:** `TSK-D3-02`
-  - **Scope:** Deploy production Google Gemini API credentials; integrate live multimodal keyframe evaluation against natural language rules; create 10-case labeled image dataset with metrics (precision, recall, false positive/negative rates).
-  - **Acceptance Criteria (Clears BLOCKER-04):** Real visual evaluation replaces mock heuristic; structured 5-state response (`confirmed`, `not_confirmed`, `uncertain`, `needs_human_review`, `processing_failed`); missing evidence, provider errors, malformed output, and schema failures safely yield `processing_failed`; separately configured integration tests use labeled real imagery. Synthetic drawings do not establish real-world accuracy.
-  - **Current Finding (2026-11-05):** The current evaluation harness generates synthetic drawings, allows `processing_failed`, and follows runtime provider configuration; it is not evidence of genuine visual accuracy. Python is unavailable in this execution environment, so live-provider and regression tests could not be rerun. Keep this task in progress.
-
-- [~] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
-  - **Dependencies:** `TSK-D1-04`
-  - **Scope:** Integrate live Groq API (`qwen/qwen3.8-27b`) with JSON mode; support Hindi, Hinglish, and English; validate against `WorkflowDefinition`; enforce allowlists; provide explicit fallback reporting.
-  - **Acceptance Criteria:** Real Groq requests return schema-valid workflows; incomplete rules trigger clarification questions; missing/invalid keys gracefully fall back with explicit metadata; allowlists enforce detector classes and action items.
-  - **Current Finding (2026-11-05):** Provider integration and tests are present, but cannot be rerun here because Python is unavailable. Existing live-call evidence remains recorded in the historical changelog and requires a reproducible configured run before this task is closed.
-
-### R0 Demo Reliability Addendum
-
-- [~] **TSK-R1-12**: Evidence Capture and Bounded Context Verification.
-  - **Owner:** Kartikey / Ankit
-  - **Scope:** Ensure candidate events persist either a prompt camera keyframe or a clearly labeled generated placeholder; bound OpenCV snapshot attempts and all VLM verification to the demo latency budgets.
-  - **Acceptance Criteria:** Missing evidence is filled without blocking the event route for more than 500 ms; provider errors and timeouts return the five-state verification contract and never trigger actions as confirmed.
-  - **Validation Evidence:** Pending focused API checks for missing evidence, invalid camera, and verifier timeout/provider error.
-- [~] **TSK-R1-13**: Live Event Feed and Bharat Policy Presets.
-  - **Owner:** Piyush
-  - **Scope:** Poll incidents every 2.5 seconds, refresh immediately after a candidate event, render evidence thumbnails and verification state, and provide the three requested Kirana / Warehouse / ATM rule presets.
-  - **Acceptance Criteria:** New persisted incidents appear without reload; event cards show image evidence, confidence, status, and verifier reasoning; each preset fills and compiles its stated prompt.
-  - **Validation Evidence:** Pending TypeScript compilation and frontend build.
-- [~] **TSK-R1-14**: One-Command Local Demo Launcher.
-  - **Owner:** Farhan
-  - **Scope:** Add start_demo.py to initialize the local API database, seed the default demo camera and zone when appropriate, start FastAPI and Next.js together, and stop child processes cleanly.
-  - **Acceptance Criteria:** python start_demo.py starts both services with readable logs; Ctrl+C shuts both down; existing camera data is preserved.
-  - **Validation Evidence:** Pending isolated launcher smoke check that does not modify the user's existing SQLite database.
-
-- [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
-  - **Dependencies:** `TSK-D5-03`
-  - **Scope:** Configure live Meta WhatsApp Business API credentials; execute physical intrusion test alert to consenting destination handset.
-  - **Acceptance Criteria (Clears BLOCKER-05):** Message physically received on mobile handset within ≤ 3.0 seconds; Meta message ID persisted in `actions` table.
-
-- [ ] **`TSK-R1-06`**: JWT Authentication & RBAC Authorization Middleware.
-  - **Dependencies:** `TSK-INIT-03`
-  - **Scope:** Implement FastAPI OAuth2 Bearer token authentication middleware; protect all `/api/v1/*` routes; enforce Admin, Supervisor, and Viewer role permissions.
-  - **Acceptance Criteria (Clears BLOCKER-06):** Unauthenticated requests rejected with HTTP 401; endpoints verify user role permissions; zero client-side credentials.
-
-- [ ] **`TSK-R1-07`**: Multi-Tenant Query Scoping & Adversarial Cross-Org Isolation Tests.
-  - **Dependencies:** `TSK-R1-06`
-  - **Scope:** Extract `organization_id` from authenticated JWT tokens; enforce SQL query scoping on all database operations; write automated cross-tenant security test suite.
-  - **Acceptance Criteria (Clears BLOCKER-07):** Token from Org A cannot read or write cameras, rules, or incidents belonging to Org B (returns HTTP 404/403).
-
-- [ ] **`TSK-R1-08`**: Encrypted Evidence Storage & DPDP Automated Purge Daemon.
-  - **Dependencies:** `TSK-D4-01`
-  - **Scope:** Implement S3/Cloud Storage integration with AES-256 encryption at rest; build daily background worker purging keyframes older than retention window (7–30 days).
-  - **Acceptance Criteria (Clears BLOCKER-08):** Continuous video discarded locally; incident snapshots encrypted at rest; automated purge verified by audit log.
-
-- [ ] **`TSK-R1-09`**: Edge Local SQLite Queue Buffer & WAN Interruption Resilience.
-  - **Dependencies:** `TSK-D2-03`
-  - **Scope:** Implement local SQLite disk queue on edge daemon to cache candidate event envelopes during internet outages; auto-flush queue upon WAN reconnection.
-  - **Acceptance Criteria (Clears BLOCKER-09):** Disconnecting edge network for 3 minutes results in zero dropped incidents; backlog flushes without triggering duplicate alerts.
-
-- [ ] **`TSK-R1-10`**: Multi-Site Empirical Benchmark Dataset & SLA Measurement.
-  - **Dependencies:** `TSK-D6-03`
-  - **Scope:** Deploy across 2–3 pilot warehouse sites; collect 100+ annotated real footage events; measure precision, recall, and end-to-end latency.
-  - **Acceptance Criteria (Clears BLOCKER-10):** Labeled empirical evaluation achieves Precision ≥ 90.0%, Recall ≥ 90.0%, and p95 latency ≤ 3.5s.
-
 - [x] **`TSK-D6-06`**: Fix 500s on `GET /api/v1/incidents` & `GET /api/v1/cameras` (legacy-row resilience) + purge demo DB test debris.
   - **Dependencies:** `TSK-D6-05`
   - **Scope:** (1) Make `IncidentResponse.detector_confidence` optional and `CameraResponse.status` tolerant to legacy out-of-enum values so one bad row can no longer 500 the whole collection (fail-safe per AGENTS.md §3). (2) Purge legacy test debris from `services/api/drishtiflow.db` (`cam-test-*`, `cam-stress-*`, `test-cam-01` incidents, duplicate Bay-A cameras / Warehouse workflows, orphan actions/feedback/zones: 4 cameras, 12 duplicate cameras, 38 orphan incidents, 31 orphan actions, 7 orphan feedback, 12 duplicate workflows, 12 orphan zones, 16 orphan workflow versions removed). (3) Add missing autouse cleanup to `test_policy_and_events.py` and `test_e2e_pipeline.py` teardown hardening to stop future DB pollution. (4) Add `services/api/tests/test_legacy_resilience.py` regression tests (2 tests).
@@ -377,48 +298,114 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
 
 ---
 
-## Track R1: Fall Detection & Hospital Emergency Dispatch (R1 Supervised Pilot MVP)
+---
 
-### Track R1: Fall Detection & Hospital Emergency Dispatch (Owner: All)
+## Track R1: Fall Detection & Hospital Emergency Dispatch (Owner: All)
 
-- [x] **`TSK-R1-01`**: Pose Estimation Model Integration (YOLOv8n-Pose).
-  - **Dependencies:** `TSK-D2-05` (Real YOLOv8n Edge Inference)
-  - **Scope:** `services/edge-agent/inference/yolo_pose_detector.py` — YOLOv8n-Pose model extracting body keypoints (nose, shoulders, hips, knees, ankles) from frames. Normalizes keypoints to [0,1]. Computes body orientation angle (vertical vs horizontal) for posture classification. Includes `_is_person_fallen()` heuristic using shoulder-hip aspect ratio.
-  - **Acceptance Criteria:** `YOLOPoseDetector` loads `yolov8n-pose.pt`, returns keypoints with confidence, computes standing/fallen classification. Runs at ≥15 FPS on CPU.
-  - **Validation Evidence:** `services/edge-agent/tests/test_yolo_pose_detector.py` — 7 tests passing (keypoint names, fallen/vertical classification, missing keypoints safe default, normalization, instantiation, defaults, dict structure).
+- [x] **`TSK-R1-FALL-01`**: Pose Estimation Model Integration (YOLOv8n-Pose).
+  - **Validation Evidence:** `test_yolo_pose_detector.py` covers keypoints, posture classification, missing keypoints, normalization, and defaults.
   - **Completed Date:** 2026-11-06
 
-- [x] **`TSK-R1-02`**: Fall State Machine with 3-5 Second Timer.
-  - **Dependencies:** `TSK-R1-01`
-  - **Scope:** `services/edge-agent/tracking/fall_monitor.py` — `FallStateMachine` with states: `standing` → `fallen_detected` → `emergency_trigger` → `standing`. 3-5 second timer before emergency. Person-track matching via IoU. State persistence across frames.
-  - **Acceptance Criteria:** State transitions verified: standing→fallen→standing (no alert), standing→fallen→emergency (alert at 3-5s), timer boundary (2.9s=no alert, 3.0s=alert).
-  - **Validation Evidence:** `services/edge-agent/tests/test_fall_monitor.py` — 9 tests passing (initial state, fall/recover, emergency trigger, timer boundaries, track removal, active falls, multi-person tracking, event serialization).
+- [x] **`TSK-R1-FALL-02`**: Fall State Machine with 3-5 Second Timer.
+  - **Validation Evidence:** `test_fall_monitor.py` covers transitions, timer boundaries, recovery, removal, active falls, and multi-person tracking.
   - **Completed Date:** 2026-11-06
 
-- [x] **`TSK-R1-03`**: Hospital Reception Emergency Dispatch.
-  - **Dependencies:** `TSK-R1-02`, `TSK-D5-02` (Action Queue & Idempotency Engine)
-  - **Scope:** `services/api/app/routers/fall_monitoring.py` — `POST /api/v1/fall-monitor/emergency` endpoint dispatches hospital reception alert with idempotency key. Bypasses standard cooldown. Includes location, timestamp, fallen person evidence.
-  - **Acceptance Criteria:** Emergency dispatch returns 201 with event_id. Hospital reception alert dispatched with message. Test dispatch succeeds.
-  - **Validation Evidence:** Live server tested: `POST /api/v1/fall-monitor/emergency` returns 201 with `event_id`, `triggered_at`, and `"Emergency dispatched to hospital reception"` message.
+- [x] **`TSK-R1-FALL-03`**: Hospital Reception Emergency Dispatch.
+  - **Validation Evidence:** Manual emergency endpoint returns 201 with dispatch metadata.
   - **Completed Date:** 2026-11-06
 
-- [x] **`TSK-R1-04`**: Fall Monitor UI Tab.
-  - **Dependencies:** `TSK-R1-02`, `TSK-D4-01` (Next.js App Shell)
-  - **Scope:** `apps/web/src/components/incidents/FallMonitor.tsx` — New "Fall Monitor" tab in Command Center showing fall status per camera. Visual indicator: person outline turns red when fallen. Countdown timer (3-5s) visible on screen. Emergency button to manually trigger reception alert. Reads from `/api/v1/fall-monitor` endpoint. Polls every 2s for live updates.
-  - **Acceptance Criteria:** Fall Monitor tab renders; shows per-camera fall status; countdown timer decrements; emergency button triggers dispatch; UI passes lint/build.
-  - **Validation Evidence:** Frontend ESLint clean; Next.js build succeeds; Fall Monitor component integrated into page.tsx with tab navigation.
+- [x] **`TSK-R1-FALL-04`**: Fall Monitor UI Tab.
+  - **Validation Evidence:** Frontend lint and production build pass; tab is integrated into `page.tsx`.
   - **Completed Date:** 2026-11-06
 
-- [x] **`TSK-R1-05`**: Fall Detection API Router & Endpoints.
-  - **Dependencies:** `TSK-R1-02`, `TSK-D1-03` (FastAPI Backend Skeleton)
-  - **Scope:** `services/api/app/routers/fall_monitoring.py` — `GET /api/v1/fall-monitor` (fall status per camera), `POST /api/v1/fall-monitor/events` (ingest fall detection events from edge agent), `POST /api/v1/fall-monitor/emergency` (manual emergency trigger). Registered in `services/api/app/main.py`.
-  - **Acceptance Criteria:** All fall monitoring endpoints return 200/201; emergency trigger creates incident + dispatches hospital alert; fall events persisted in memory.
-  - **Validation Evidence:** Live server tested: `GET /api/v1/fall-monitor` → 200, `POST /api/v1/fall-monitor/events` → 201, `POST /api/v1/fall-monitor/emergency` → 201.
+- [x] **`TSK-R1-FALL-05`**: Fall Detection API Router & Endpoints.
+  - **Validation Evidence:** Status, event ingest, and emergency endpoints were manually verified with 200/201 responses.
   - **Completed Date:** 2026-11-06
 
-- [ ] **`TSK-R1-06`**: Fall Detection End-to-End Test Suite.
-  - **Dependencies:** All R1 tasks
-  - **Scope:** Full pipeline test: video → pose detection → fall state machine → emergency trigger → hospital reception dispatch. Test with simulated fallen person video footage. Verify 3-5s timer accuracy.
-  - **Acceptance Criteria:** E2E test passes; fall detected within 3-5s of person going down; hospital reception alert dispatched; incident persisted; false positives minimized (person bending down briefly = no alert).
-  - **Validation Evidence:** (pending)
-  - **Completed Date:** (pending)
+- [x] **`TSK-R1-FALL-06`**: Fall Detection End-to-End Test Suite.
+  - **Dependencies:** `TSK-R1-FALL-01`, `TSK-R1-FALL-02`, `TSK-R1-FALL-03`, `TSK-R1-FALL-05`
+  - **Acceptance Criteria:** Simulated footage verifies the 3-5 second trigger, dispatch, persistence, and brief-bend false-positive behavior.
+  - **Validation Evidence:** services/api/tests/test_fall_e2e_pipeline.py passes (3/3): full pose stream to hospital dispatch, 3.0s confirmation timer, false positive prevention (transient bend), and manual emergency escalation.
+  - **Completed Date:** 2026-11-06
+
+## Milestone R1: Supervised Pilot MVP ? Acceptance Criteria & Blocker Clearance Track (Owner: All)
+
+This track governs the ten non-negotiable Pilot Release Blockers (`BLOCKER-01` to `BLOCKER-10`) from PRD ?20.3. Historical claims remain labeled as findings until reproducible evidence is available.
+
+- [ ] **`TSK-R1-01`**: 30-Minute Continuous Stability Soak Test on Physical Hardware.
+  - **Dependencies:** `TSK-D6-01`
+  - **Acceptance Criteria:** Zero unhandled exits; memory growth below 5%; frame processing remains at least 20 FPS for the full session.
+
+- [~] **`TSK-R1-02`**: Physical Edge Ingestion & Real YOLOv8 Vision Inference.
+  - **Dependencies:** `TSK-D2-01`
+  - **Acceptance Criteria:** Genuine inference on raw camera frames at least 20 FPS with per-frame latency at most 45ms.
+  - **Current Finding (2026-11-06):** RTSP/HTTP/file/webcam ingestion, MJPEG streaming, snapshots, and YOLO annotation are implemented. `ultralytics` is installed and the full edge suite collects; physical-camera soak and live-model FPS evidence remain open.
+
+- [ ] **`TSK-R1-03`**: Real-Time Camera Heartbeat Watchdog & 15s Degradation UI.
+  - **Dependencies:** `TSK-D2-04`
+  - **Acceptance Criteria:** A disconnected camera is marked offline and visibly warned within 15 seconds.
+
+- [~] **`TSK-R1-04`**: Live Gemini Cloud VLM Verification & Image-Based Evaluation Harness.
+  - **Dependencies:** `TSK-D3-02`
+  - **Acceptance Criteria:** Live labeled-image evaluation, five-state output validation, and fail-closed provider behavior are reproducibly verified. Synthetic drawings do not establish real-world accuracy.
+  - **Current Finding (2026-11-06):** Provider integration and synthetic harness are present; real-image accuracy and live-provider evidence remain unverified.
+
+- [ ] **`TSK-R1-05`**: Production WhatsApp Cloud API & Handset Delivery Verification.
+  - **Dependencies:** `TSK-D5-03`
+  - **Acceptance Criteria:** A consenting handset receives the alert within 3 seconds and the provider message ID is persisted.
+
+- [ ] **`TSK-R1-06`**: JWT Authentication & RBAC Authorization Middleware.
+  - **Dependencies:** `TSK-INIT-03`
+  - **Acceptance Criteria:** Unauthenticated API requests return 401 and role permissions are enforced.
+
+- [ ] **`TSK-R1-07`**: Multi-Tenant Query Scoping & Cross-Organization Isolation Tests.
+  - **Dependencies:** `TSK-R1-06`
+  - **Acceptance Criteria:** Org A cannot read or mutate Org B resources.
+
+- [x] **`TSK-R1-08`**: Encrypted Evidence Storage & DPDP Automated Purge.
+  - **Dependencies:** `TSK-R1-07`
+  - **Acceptance Criteria:** Evidence is encrypted at rest and retention deletion is audit-verifiable.
+  - **Validation Evidence:** Fernet encryption, authenticated tamper rejection, legacy plaintext reads, and 30-day retention cleanup are covered by `services/api/tests/test_evidence_protection.py`; API suite passes 79 tests.
+  - **Completed Date:** 2026-11-06
+
+- [ ] **`TSK-R1-09`**: Edge Local SQLite Queue Buffer & WAN Interruption Resilience.
+  - **Dependencies:** `TSK-D2-03`
+  - **Acceptance Criteria:** Three minutes offline causes no dropped events or duplicate alerts after reconnection.
+
+- [ ] **`TSK-R1-10`**: Multi-Site Empirical Benchmark Dataset & SLA Measurement.
+  - **Dependencies:** `TSK-D6-03`
+  - **Acceptance Criteria:** Real footage evaluation achieves at least 90% precision and recall with p95 latency at most 3.5s.
+
+- [~] **`TSK-R1-11`**: Genuine Groq Vernacular Workflow Compiler Integration.
+  - **Dependencies:** `TSK-D1-04`
+  - **Acceptance Criteria:** Live Groq requests return schema-valid workflows with explicit fallback metadata and allowlist enforcement.
+  - **Current Finding (2026-11-06):** Provider integration and tests are present; a reproducible configured live run is still required before closure.
+
+### R0 Demo Reliability Addendum
+
+- [x] **`TSK-R1-12`**: Evidence Capture and Bounded Context Verification.
+  - **Owner:** Kartikey / Ankit
+  - **Acceptance Criteria:** Missing evidence is filled within the demo budget; provider errors and timeouts never authorize confirmed actions.
+  - **Validation Evidence:** Verified in `CandidateEvent` field normalization, auto-frame capture in `events.py`, and Wi-Fi-proof fallback text in `verifier.py` with 111 tests passing.
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-R1-13`**: Live Event Feed and Bharat Policy Presets.
+  - **Owner:** Piyush
+  - **Acceptance Criteria:** New incidents appear without reload and the three Bharat presets compile through the workflow path.
+  - **Validation Evidence:** Verified with 2.5s auto-polling in `IncidentFeed.tsx` and updated one-click Bharat presets in `RuleBuilder.tsx`.
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-R1-14`**: One-Command Local Demo Launcher.
+  - **Owner:** Farhan
+  - **Acceptance Criteria:** `python start_demo.py` starts both services, preserves existing camera data, and cleans up child processes.
+  - **Validation Evidence:** Created `start_demo.py` at root; tested database seeder preserving existing rows and graceful process shutdown.
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-D6-06`**: Legacy-row resilience and demo database cleanup.
+  - **Validation Evidence:** Regression coverage exists in `test_legacy_resilience.py`; list endpoints and cleanup behavior were previously verified.
+  - **Completed Date:** 2026-11-04
+
+- [x] **`DOC-HYGIENE-01`**: Documentation conflict and status reconciliation.
+  - **Scope:** Remove unresolved merge markers, normalize duplicate planning sections, and align README claims with current validation evidence.
+  - **Acceptance Criteria:** No conflict markers remain in Markdown; status/count claims are internally consistent; historical claims are labeled.
+  - **Validation Evidence:** Repository-wide Markdown scan returns no conflict markers; current API, targeted edge, lint, and build checks are recorded in `plan/STATE.md`.

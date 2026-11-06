@@ -29,14 +29,23 @@ export const IncidentFeed: React.FC<IncidentFeedProps> = ({ latestIncident }) =>
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
 
-  // Fetch recent incidents on mount
+  // Fetch recent incidents on mount and poll every 2.5s for real-time live event feed
   useEffect(() => {
-    fetch(`${apiBase}/api/v1/incidents?limit=20`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setIncidents(data);
-      })
-      .catch((err) => console.warn("Failed to fetch initial incidents:", err));
+    const fetchIncidents = async () => {
+      try {
+        const res = await fetch(`${apiBase}/api/v1/incidents?limit=20`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setIncidents(data);
+        }
+      } catch (err) {
+        console.warn("Failed to poll incidents:", err);
+      }
+    };
+
+    fetchIncidents();
+    const interval = setInterval(fetchIncidents, 2500);
+    return () => clearInterval(interval);
   }, [apiBase]);
 
   // Prepend latest incident when candidate triggered

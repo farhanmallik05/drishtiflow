@@ -10,32 +10,32 @@ interface RuleBuilderProps {
 
 const BHARAT_PRESETS = [
   {
-    id: "mandi-godown",
-    title: "Mandi / Godown Security",
+    id: "kirana-shoplifting",
+    title: "Kirana Shoplifting Guard",
+    title_hi: "किराना चोरी रोकथाम",
+    prompt: "Dukaan mein koi saman bina billing jeb mein rakhe ya bina payment counter cross kare toh WhatsApp alert bhejo",
+    icon: "🏪",
+  },
+  {
+    id: "warehouse-bay",
+    title: "Warehouse Bay Intrusion",
     title_hi: "गोदाम अनधिकृत प्रवेश",
-    prompt: "Raat 10 baje ke baad godown mein koi aaye toh alert karo",
+    prompt: "Raat 10 baje ke baad godown ke storage bay mein koi unauthorized vyakti dikhe toh alert karo",
     icon: "🏭",
   },
   {
-    id: "msme-machinery",
-    title: "MSME Machinery Zone",
-    title_hi: "मशीनरी सुरक्षा क्षेत्र",
-    prompt: "When anyone enters the restricted cutting machinery bay notify supervisor",
-    icon: "⚙️",
+    id: "atm-loitering",
+    title: "ATM Vestibule Loitering",
+    title_hi: "एटीएम संदिग्ध उपस्थिति",
+    prompt: "ATM ke andar 3 minute se zyada koi ruka rahe ya do log ek saath enter karein toh alert karo",
+    icon: "🏧",
   },
   {
     id: "hospital-fall",
     title: "Hospital Fall Assist",
     title_hi: "अस्पताल मरीज गिरावट",
-    prompt: "Agar ward 3 mein koi patient gir jaye toh staff ko check karne bolo",
+    prompt: "Agar hospital ward mein koi patient floor par gir jaye toh turant emergency medical alert bhejo",
     icon: "🏥",
-  },
-  {
-    id: "kirana-counter",
-    title: "Kirana Counter Security",
-    title_hi: "किराना काउंटर निगरानी",
-    prompt: "Dukaan band hone ke baad counter ke paas koi dikhe toh WhatsApp bhejo",
-    icon: "🏪",
   },
 ];
 

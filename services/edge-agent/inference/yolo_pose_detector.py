@@ -14,7 +14,10 @@ from typing import Dict, Any, List, Optional
 
 import cv2
 import numpy as np
-from ultralytics import YOLO
+try:
+    from ultralytics import YOLO
+except (ImportError, OSError):
+    YOLO = None
 
 # COCO keypoint indices (17 keypoints per person)
 # 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear,

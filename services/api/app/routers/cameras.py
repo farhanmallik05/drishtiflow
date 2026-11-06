@@ -87,15 +87,20 @@ def _resolve_cv_source(
     return None
 
 
-def _validate_stream_source(source: Optional[Union[int, str]]) -> Optional[Union[int, str]]:
+def _validate_stream_source(
+    source: Optional[Union[int, str]],
+    allow_lan: bool = False,
+) -> Optional[Union[int, str]]:
     """
     Reject SSRF-dangerous sources before they reach cv2.VideoCapture.
 
     Allows:
     - ``None`` (no source)
     - integer device indices (local webcam)
-    - public http/https/rtsp URLs whose host is not loopback, private,
-      link-local, multicast, reserved, or unspecified.
+    - local video file paths (.mp4, .avi, .mov, .mkv, .webm)
+    - public http/https/rtsp URLs
+    - private LAN IPs (10.x, 192.168.x, 172.16-31.x) when allow_lan=True or ALLOW_PRIVATE_STREAMS=true
+    - rejects link-local (169.254.x), loopback (127.0.0.1), multicast, and cloud metadata.
 
     Returns ``None`` when the source should be refused.
     """
@@ -103,6 +108,19 @@ def _validate_stream_source(source: Optional[Union[int, str]]) -> Optional[Union
         return source
 
     text = str(source).strip()
+
+    # Allow local video files for offline demos, benchmarks and tests
+    video_extensions = (".mp4", ".avi", ".mov", ".mkv", ".webm")
+    try:
+        from pathlib import Path
+        candidate_path = Path(text)
+        if candidate_path.suffix.lower() in video_extensions and (candidate_path.is_file() or candidate_path.exists()):
+            return text
+        if any(text.lower().endswith(ext) for ext in video_extensions) and not text.startswith(("file://", "ftp://")):
+            return text
+    except Exception:
+        pass
+
     try:
         parsed = urlparse(text)
     except Exception:
@@ -122,14 +140,22 @@ def _validate_stream_source(source: Optional[Union[int, str]]) -> Optional[Union
         # Hostname: allow (cannot reliably enumerate all private TLDs).
         return text
 
+    # Block cloud metadata, link-local, multicast, reserved, unspecified, loopback
     if (
-        ip.is_loopback
-        or ip.is_private
+        ip == ipaddress.ip_address("169.254.169.254")
         or ip.is_link_local
         or ip.is_multicast
         or ip.is_reserved
         or ip.is_unspecified
+        or ip.is_loopback
     ):
+        return None
+
+    # Handle private RFC1918 subnets (LAN IP cameras)
+    if ip.is_private:
+        import os
+        if allow_lan or os.getenv("ALLOW_PRIVATE_STREAMS", "false").lower() in ("true", "1"):
+            return text
         return None
 
     return text
@@ -496,7 +522,7 @@ def stream_camera_feed(
     effective_url = stream_url if stream_url is not None else (camera or {}).get("stream_url")
     source_type = (camera or {}).get("source_type", "webcam")
     cv_source = _resolve_cv_source(source_type, effective_url)
-    cv_source = _validate_stream_source(cv_source)
+    cv_source = _validate_stream_source(cv_source, allow_lan=True)
 
     if cv_source is None:
         fallback = _create_fallback_banner(
@@ -535,7 +561,7 @@ def capture_camera_snapshot(
     effective_url = stream_url if stream_url is not None else (camera or {}).get("stream_url")
     source_type = (camera or {}).get("source_type", "webcam")
     cv_source = _resolve_cv_source(source_type, effective_url)
-    cv_source = _validate_stream_source(cv_source)
+    cv_source = _validate_stream_source(cv_source, allow_lan=True)
 
     if cv_source is None:
         fallback = _create_fallback_banner(

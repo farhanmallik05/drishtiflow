@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import uuid
+from .services.evidence import purge_expired_evidence
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "drishtiflow.db")
 
@@ -174,9 +175,9 @@ def init_db():
             (str(uuid.uuid4()), cam_id, "Restricted Storage Bay A", json.dumps(sample_zone), "#ef4444", now)
         )
 
+    purge_expired_evidence(conn)
     conn.commit()
     conn.close()
 
 # Auto-initialize database on module import
 init_db()
-

@@ -11,6 +11,8 @@ class Settings:
 
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./drishtiflow.db")
+    EVIDENCE_ENCRYPTION_KEY: str = os.getenv("EVIDENCE_ENCRYPTION_KEY", "")
+    EVIDENCE_RETENTION_DAYS: int = int(os.getenv("EVIDENCE_RETENTION_DAYS", "30"))
 
     # AI Providers (Google Gemini / Groq / xAI)
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")

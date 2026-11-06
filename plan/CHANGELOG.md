@@ -8,10 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2026-11-06 (Demo Reliability Addendum)
 
-<<<<<<< HEAD
+### Live Demo Hardening & Master Prototype Completion (2026-11-06)
+- **TSK-R1-FALL-06 (DONE):** Added comprehensive Fall Detection E2E test suite (`services/api/tests/test_fall_e2e_pipeline.py`) validating pose keypoint stream, 3.0s confirmation timer, state machine transitions, FastAPI event ingest, and hospital emergency dispatch with 3/3 tests passing.
+- **TSK-R1-12 (DONE):** Resilient Candidate Event Schema & Wi-Fi-Proof Context Verification:
+  - Enhanced `CandidateEvent` schema in `services/api/app/schemas/incident.py` with field normalizers for `evidence_frame`, `timestamp`, `dwell_time_sec`, and additional source modes (`rtsp`, `http`, `upload`).
+  - Configured auto-evidence capture in `services/api/app/routers/events.py` via OpenCV stream reading if evidence frame is omitted.
+  - Implemented Wi-Fi-proof deterministic fallback in `services/api/app/services/verifier.py` to prevent demo stalls during venue Wi-Fi timeouts or network latency.
+  - Allowed local video files (.mp4, .avi, etc.) and private LAN IPs in `_validate_stream_source` (`services/api/app/routers/cameras.py`).
+- **TSK-R1-13 (DONE):** Real-Time Incident Polling & Bharat Presets:
+  - Implemented 2.5s auto-polling interval in `apps/web/src/components/incidents/IncidentFeed.tsx` for real-time live event feed updates.
+  - Updated one-click Bharat Demo Presets in `apps/web/src/components/workflow/RuleBuilder.tsx`: Kirana Shoplifting Guard, Warehouse Bay Intrusion, ATM Vestibule Loitering, and Hospital Fall Assist.
+- **TSK-R1-14 (DONE):** Created single-command Hackathon Demo Launcher (`start_demo.py`) at repository root with automatic SQLite seeding for `cam-shop-01` and `High-Value Shelf Zone`, concurrent FastAPI + Next.js orchestration, and graceful SIGINT cleanup.
+- **Validation Evidence:**
+  - Full test suite: **111 passed, 6 deselected** in 38.14s (`python -m pytest services/api/tests services/edge-agent/tests -q`).
+  - Frontend ESLint: `npm run lint --prefix apps/web` exited 0 with 0 warnings or errors.
+  - Next.js Production Build: `npm run build --prefix apps/web` exited 0; 4/4 static pages generated (106 kB First Load JS).
+
+
 ### Planning
-- Started TSK-R1-12 through TSK-R1-14 for evidence fallback and bounded verification, auto-refreshing event cards and requested policy presets, and a one-command local demo launcher. This scope does not close any physical-hardware or live-provider pilot blocker.
-=======
+- **DOC-HYGIENE-01 (DONE):** Reconciled Markdown merge conflicts, normalized planning sections, and labeled historical or unverified claims.
+- Active work on TSK-R1-12 through TSK-R1-14 for evidence fallback, bounded verification, and demo launchers. Physical-hardware and live-provider pilot blockers remain open.
+
+### Security and Validation
+- **TSK-R1-08 (DONE):** Added Fernet encryption for incident evidence, compatibility reads for legacy plaintext rows, configurable retention cleanup, and focused regression coverage.
+- **TSK-R1-02 (VALIDATED):** Installed the declared `ultralytics` dependency and added a narrow Windows `WinError 1337` invalid-mount guard so the full edge test collection can import YOLO modules.
+- API validation: **79 passed, 6 deselected**.
+- Edge validation: **32 passed** with the full suite collected; live physical-camera soak and model FPS remain pilot evidence items.
+
 ### Added
 - **Futuristic 3D Landing Page & Smart Surveillance Operations Platform (`LandingPage`)** (`TSK-FE-05`):
   - 3D Interactive Surveillance Camera scene with Three.js (pan-tilt turret, glowing optical lens, holographic scanning laser, floating particle field, mouse tracking).
@@ -35,9 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `npm run lint --workspace=apps/web`: 0 errors 0 warnings.
 - `npm run build --workspace=apps/web`: success, 105 kB First Load JS.
 
----
-
----
+### Added
+- **Shoplifting pipeline:**
   - `ShopliftMonitor` composes the existing YOLOv8n person detector + zone point-in-polygon filter to track persons across frames.
   - Records shop `entry_time` (first entry into shop zone) and `exit_time` (exit or disappearance) per person.
   - Flags `theft_suspected=True` when a person dwells near shelves/items and then exits the shop zone.
@@ -76,7 +98,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pytest services/edge-agent/tests/ services/api/tests/ -q`: **48/48 passed** (7 new shoplift tests + existing suites, no regressions).
 - End-to-end smoke on real CCTV footage: `shop_theft_log.csv` produced (109 rows, 18 theft-suspected incidents, 18 evidence photos).
 - `npm run build --workspace=apps/web`: UI compiles successfully.
->>>>>>> a93e41167a71311a65572950d6bf4f07502b05ab
 
 ---
 
@@ -328,12 +349,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `test_compiler.py`: Tests Hindi and English prompt compilation.
   - `test_health.py`: Tests `/api/v1/health` and `/api/v1/ready`.
   - `test_policy_and_events.py`: Tests policy evaluation and idempotency keys.
-  - `test_evaluation_harness.py`: Benchmark on 10 evaluation samples (100% precision and recall).
+  - `test_evaluation_harness.py`: Historical benchmark on 10 synthetic evaluation samples; not evidence of real-world accuracy.
   - `test_edge_agent.py`: Tests stream reconnect, PIP geometry, and dwell tracker (4/4 passed).
-  - `test_e2e_pipeline.py`: Full end-to-end integration test across all 6 stages (passed in 0.68s).
+  - `test_e2e_pipeline.py`: Historical full end-to-end integration test across all 6 stages (passed in 0.68s).
 
 ### Verified
-- 12/12 pytest unit and integration tests passing cleanly in 4.36s.
+- Historical R0 validation: 12/12 pytest unit and integration tests passed cleanly.
 - `next build` compiled with 0 errors (100 kB First Load JS).
 - All 27 tasks across 7 tracks marked `[x] DONE` in `plan/TASKS.md`.
 - Milestone R0 scope 100% fulfilled.

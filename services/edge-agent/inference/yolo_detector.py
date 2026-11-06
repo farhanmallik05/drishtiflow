@@ -17,7 +17,10 @@ from typing import Dict, Any, List, Optional
 
 import cv2
 import numpy as np
-from ultralytics import YOLO
+try:
+    from ultralytics import YOLO
+except (ImportError, OSError):
+    YOLO = None
 
 # Map COCO class index -> schema-allowed class name (matches workflow-schema.z.ts)
 COCO_CLASS_MAP = {

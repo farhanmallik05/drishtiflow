@@ -256,6 +256,12 @@ create table incidents (
     created_at timestamptz not null default now()
 );
 
+Evidence frames are encrypted before persistence with a server-only Fernet key and
+stored using an `enc:v1:` marker. Legacy unmarked rows remain readable for
+migration compatibility. A configurable retention job clears frame and URL
+columns while preserving incident metadata; `EVIDENCE_RETENTION_DAYS <= 0`
+disables automatic cleanup.
+
 -- Actions & Retries
 create table actions (
     id uuid primary key default gen_random_uuid(),
@@ -329,4 +335,3 @@ create index idx_cameras_site on cameras (site_id);
 3. **Tenant Isolation:** Every database query enforces `organization_id` scoping.
 4. **Idempotency Guarantees:** Actions cannot be duplicated by retries or race conditions due to unique database idempotency constraints.
 5. **Human-in-the-Loop:** Safety-critical actions require human review. High-consequence dispatch to public emergency services is explicitly excluded from MVP scope.
-

@@ -8,6 +8,7 @@ from ..services.verifier import verify_context
 from ..services.policy import PolicyEngine
 from ..services.action_dispatcher import ActionDispatcher
 from ..database import get_db
+from ..services.evidence import encrypt_evidence
 
 router = APIRouter(prefix="/api/v1/events", tags=["Edge Events"])
 
@@ -21,8 +22,9 @@ async def ingest_candidate_event(event: CandidateEvent):
     cursor = conn.cursor()
 
     # Look up camera
-    cursor.execute("SELECT id, organization_id, site_id, name FROM cameras WHERE id = ?", (event.camera_id,))
+    cursor.execute("SELECT id, organization_id, site_id, name, stream_url FROM cameras WHERE id = ?", (event.camera_id,))
     camera = cursor.fetchone()
+    camera_stream_url = None
     if not camera:
         # Fall back to default site and org if not found
         cursor.execute("SELECT id, organization_id FROM sites LIMIT 1")
@@ -34,6 +36,24 @@ async def ingest_candidate_event(event: CandidateEvent):
         org_id = camera["organization_id"]
         site_id = camera["site_id"]
         camera_name = camera["name"]
+        camera_stream_url = camera["stream_url"]
+
+    # Auto-capture evidence frame if omitted and live camera/URL is configured
+    evidence_frame_b64 = event.evidence_frame_base64
+    if not evidence_frame_b64 and camera_stream_url and str(camera_stream_url).strip():
+        try:
+            import cv2, base64
+            source_target = int(str(camera_stream_url).strip()) if str(camera_stream_url).strip().isdigit() else str(camera_stream_url).strip()
+            cap = cv2.VideoCapture(source_target)
+            if cap.isOpened():
+                ok, frame = cap.read()
+                cap.release()
+                if ok and frame is not None:
+                    frame_resized = cv2.resize(frame, (640, 360))
+                    _, buf = cv2.imencode(".jpg", frame_resized, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                    evidence_frame_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode("utf-8")
+        except Exception:
+            pass
 
     # Retrieve active workflow if specified
     active_workflow = None
@@ -53,7 +73,7 @@ async def ingest_candidate_event(event: CandidateEvent):
         else "Verify whether an unauthorized person is present inside the restricted perimeter zone."
     )
     verification = await verify_context(
-        evidence_frame_base64=event.evidence_frame_base64,
+        evidence_frame_base64=evidence_frame_b64,
         verification_instruction=verification_instruction,
         event_type=event.event_type,
         detector_confidence=event.detector.confidence
@@ -95,7 +115,7 @@ async def ingest_candidate_event(event: CandidateEvent):
             incident_id, org_id, site_id, event.camera_id, event.workflow_id, event.workflow_version,
             event.event_type, status, event.detector.confidence, verification.confidence,
             f"{verification.evidence_summary} ({policy_reason})",
-            event.evidence_frame_base64, event.evidence_url, event.occurred_at, now
+            encrypt_evidence(evidence_frame_b64), event.evidence_url, event.occurred_at, now
         )
     )
     conn.commit()
@@ -124,4 +144,3 @@ async def ingest_candidate_event(event: CandidateEvent):
         "dispatched_actions": dispatched_actions,
         "occurred_at": event.occurred_at
     }
-

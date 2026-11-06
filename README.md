@@ -183,7 +183,7 @@ Shoplifting Log UI Tab (track id, entry, exit, duration, theft flag, photo)
 | **Edge Vision** | Python, OpenCV, Ultralytics YOLOv8n, NumPy |
 | **AI / VLM** | Gemini / Groq Vision (cloud), Deterministic mock (offline) |
 | **Notifications** | WhatsApp Cloud API, Vapi Voice |
-| **Testing** | pytest (37+ tests), Next.js ESLint |
+| **Testing** | pytest API/edge suites, Next.js ESLint and production build |
 | **Package Manager** | npm workspaces (monorepo) |
 
 ---
@@ -210,7 +210,7 @@ Build_with_Bharat/
 │   │   │   ├── routers/          # Health, workflows, cameras, events, incidents, actions, shoplifting
 │   │   │   ├── schemas/          # Pydantic models
 │   │   │   └── services/         # Compiler, verifier, policy, action_dispatcher
-│   │   └── tests/                # pytest suites (37+ tests)
+│   │   └── tests/                # pytest suites
 │   └── edge-agent/               # Python edge agent
 │       ├── inference/            # YOLOv8n detector
 │       ├── ingest/               # Stream handler
@@ -324,8 +324,11 @@ python services/edge-agent/tools/run_real_video_pipeline.py
 ## Testing
 
 ```bash
-# Backend + edge agent tests (48 tests)
-pytest services/api/tests services/edge-agent/tests -q
+# API tests (72 passed, 6 deselected in the latest local run)
+pytest services/api/tests -q
+
+# Dependency-light edge tests (13 passed, 1 skipped in the latest local run)
+pytest services/edge-agent/tests/test_edge_agent.py services/edge-agent/tests/test_fall_monitor.py services/edge-agent/tests/test_shoplift_monitor.py -q
 
 # Frontend lint
 npm run lint --workspace=apps/web
@@ -335,8 +338,8 @@ npm run build --workspace=apps/web
 ```
 
 ### Test Coverage
-- **47+ tests passing** across API and edge-agent suites
-- Compiler (Hindi/English), health, policy/stress, boundary challenges, evaluation harness (100% precision/recall), e2e pipeline, edge geometry, YOLO detector, shoplifting monitor, legacy resilience regression
+- **Latest local validation:** API suite 72 passed with 6 deselected; targeted edge suites 13 passed with 1 skipped. Full edge collection requires the optional `ultralytics` package.
+- Compiler (Hindi/English), health, policy/stress, boundary challenges, evaluation harness (synthetic scenarios only), e2e pipeline, edge geometry, YOLO detector, shoplifting monitor, legacy resilience regression
 
 ---
 
@@ -350,7 +353,7 @@ npm run build --workspace=apps/web
 | Track 3: Context Verification Engine | Ankit | VLM verifier, deterministic mock, test harness |
 | Track 4: Frontend, Canvas & Incident UI | Piyush | Next.js Command Center, RuleBuilder, Graph, Shoplifting Log |
 | Track 5: Policy Engine & Action Worker | Kaushendra | Cooldown policy, WhatsApp & Vapi adapters |
-| Track 6: Testing, Evaluation & Pitch | All | 48 tests, evaluation harness, pitch rehearsal |
+| Track 6: Testing, Evaluation & Pitch | All | API/edge test suites, evaluation harness, pitch rehearsal |
 
 ---
 
@@ -358,7 +361,7 @@ npm run build --workspace=apps/web
 
 - **No secrets in frontend** — all API keys are backend-only environment variables.
 - **Data minimization** — no continuous video upload to cloud; only triggered keyframe snapshots.
-- **Tenant isolation** — every DB query scoped by `organization_id`.
+- **Tenant isolation** ? schema fields exist, but authenticated request scoping remains an R1 release blocker.
 - **Idempotency** — SHA-256 keys prevent duplicate WhatsApp / voice alerts.
 - **Safe degradation** — VLM failures degrade to `uncertain` / `processing_failed`, never silently suppressed.
 - **Human-in-the-loop** — high-consequence actions require explicit opt-in; no autonomous emergency dispatch.
@@ -370,7 +373,7 @@ npm run build --workspace=apps/web
 | Milestone | Scope | Status |
 |-----------|-------|--------|
 | **R0: Hackathon Prototype** | Single camera, Hindi compiler, zone trigger, VLM verify, test WhatsApp/voice | ✅ Complete |
-| **R1: Supervised Pilot MVP** | Multi-camera, auth, retries, audit trail, Supabase DB, RTSP agent | ⬜ Upcoming |
+| **R1: Supervised Pilot MVP** | Fall detection USP, multi-camera, auth, retries, audit trail, Supabase DB, RTSP agent | IN PROGRESS |
 | **R2: Multi-Site Operations** | Org/site hierarchy, RBAC, retention policies, quotas | ⬜ Upcoming |
 | **R3: Enterprise Integrations** | Webhooks, NVR/DVR bridges, device heartbeat telemetry | ⬜ Upcoming |
 | **R4: Advanced Intelligence** | Fine-tuned models (PPE, fall detection, smoke), model governance | ⬜ Upcoming |
