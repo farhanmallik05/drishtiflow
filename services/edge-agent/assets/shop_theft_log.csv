@@ -1,4 +1,4 @@
 track_id,camera_id,entry_time,exit_time,duration_seconds,shelf_interaction,theft_suspected,detector_confidence,photo_path,logged_at
-person-2,cam-uploaded,2026-11-05T18:45:51.143975+00:00,2026-11-05T18:45:56.301441+00:00,5.157466,False,False,0.5791,,2026-11-05T18:45:56.301441+00:00
-person-1,cam-uploaded,2026-11-05T18:45:51.143975+00:00,2026-11-05T18:46:19.157418+00:00,28.013443,True,True,0.7693,C:\FarhanHackathon\BWB Microsoft\Build_with_Bharat\services\edge-agent\assets\evidence\cam-uploaded_person-1_20261105T184619157.jpg,2026-11-05T18:46:19.159428+00:00
-person-3,cam-uploaded,2026-11-05T18:45:58.830226+00:00,2026-11-05T18:46:19.806824+00:00,20.976598,True,True,0.8107,C:\FarhanHackathon\BWB Microsoft\Build_with_Bharat\services\edge-agent\assets\evidence\cam-uploaded_person-3_20261105T184619806.jpg,2026-11-05T18:46:19.810874+00:00
+person-2,cam-uploaded,2026-11-06T05:35:29.565588+00:00,2026-11-06T05:35:34.716482+00:00,5.150894,False,False,0.5791,,2026-11-06T05:35:34.716482+00:00
+person-1,cam-uploaded,2026-11-06T05:35:29.565588+00:00,2026-11-06T05:36:10.817917+00:00,41.252329,True,True,0.7693,C:\FarhanHackathon\BWB Microsoft\Build_with_Bharat\services\edge-agent\assets\evidence\cam-uploaded_person-1_20261106T053610817.jpg,2026-11-06T05:36:10.829588+00:00
+person-3,cam-uploaded,2026-11-06T05:35:36.907488+00:00,2026-11-06T05:36:11.396696+00:00,34.489208,True,True,0.8107,C:\FarhanHackathon\BWB Microsoft\Build_with_Bharat\services\edge-agent\assets\evidence\cam-uploaded_person-3_20261106T053611396.jpg,2026-11-06T05:36:11.403925+00:00
