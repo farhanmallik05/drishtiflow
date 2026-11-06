@@ -1,4 +1,5 @@
 # DrishtiFlow Project State
+<<<<<<< HEAD
 **Last Updated:** 2026-11-06T01:24:00+05:30
 **Active Milestone:** R0 Demo Reliability Addendum (R1 safety gates remain open)
 **Active Task:** TSK-R1-12–TSK-R1-14 — evidence fallback, bounded VLM verification, live event feed, Bharat presets, and one-command demo startup
@@ -13,6 +14,14 @@
 - Live MJPEG streaming + snapshot endpoints with YOLOv8 annotation (`services/api/app/routers/cameras.py`)  
 - RTSP mode, URL bar, YOLO toggle and evidence snapshot in the camera preview (`CameraPreview.tsx`)  
 **Overall System Health:** 🟠 IN PROGRESS (Demo reliability implementation is active; live provider, physical camera, and pilot safety gates remain unverified)
+=======
+**Last Updated:** 2026-11-06T03:00:00+05:30  
+**Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection & Hospital Emergency Dispatch — USP)  
+**Next Milestone:** Milestone R2 — Multi-Site Operations  
+**Overall System Health:** 🟢 GREEN (All 30 R0 tasks complete, 48/48 tests passing, ESLint 0 warnings/errors, Next.js 14 build verified) | 🟡 R1 IN PROGRESS (Fall Detection & Hospital Emergency Dispatch — 5/6 tasks complete)
+
+**Active Task:** `TSK-R1-06` (IN_PROGRESS) — Fall Detection End-to-End Test Suite. Fall detection USP complete: pose detector, fall state machine, emergency dispatch, API router, Fall Monitor UI all implemented and verified.
+>>>>>>> a93e41167a71311a65572950d6bf4f07502b05ab
 
 ---
 

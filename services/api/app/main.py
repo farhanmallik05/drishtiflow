@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import init_db
-from .routers import health, workflows, cameras, events, incidents, actions, shoplifting
+from .routers import health, workflows, cameras, events, incidents, actions, shoplifting, fall_monitoring
 
 # Initialize database tables on startup
 init_db()
@@ -32,6 +32,7 @@ app.include_router(events.router)
 app.include_router(incidents.router)
 app.include_router(actions.router)
 app.include_router(shoplifting.router)
+app.include_router(fall_monitoring.router)
 
 @app.get("/")
 def root():

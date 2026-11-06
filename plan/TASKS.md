@@ -24,10 +24,16 @@
 | **Track 3: Context Verification Engine** | Ankit | 4 | 4 | 0 | 0 |
 | **Track 4: Frontend, Canvas & Incident UI** | Piyush | 4 | 4 | 0 | 0 |
 | **Track 5: Policy Engine & Action Worker** | Kaushendra | 4 | 4 | 0 | 0 |
+<<<<<<< HEAD
 | **Track 6: Testing, Evaluation & Pitch** | All | 4 | 4 | 0 | 0 |
 | **Milestone R1 Pilot Blocker Clearance Track** | All | 11 | 0 | 2 | 9 |
 | **R0 Demo Reliability Addendum** | Farhan / Kartikey / Ankit / Piyush | 3 | 0 | 3 | 0 |
 | **Total** | | **41** | **27** | **5** | **9** |
+=======
+| **Track 6: Testing, Evaluation & Pitch** | All | 6 | 6 | 0 | 0 |
+| **Track R1: Fall Detection & Hospital Emergency Dispatch** | All | 6 | 5 | 0 | 1 |
+| **Grand Total** | | **36** | **35** | **0** | **1** |
+>>>>>>> a93e41167a71311a65572950d6bf4f07502b05ab
 
 ---
 
@@ -249,6 +255,7 @@
 
 ---
 
+<<<<<<< HEAD
 ## Milestone R1: Supervised Pilot MVP — Acceptance Criteria & Blocker Clearance Track (Owner: All)
 
 This track governs the resolution of the ten non-negotiable Pilot Release Blockers ([BLOCKER-01] to [BLOCKER-10]) established in PRD §20.3 and evaluated in [`plan/WORKFLOW_AUDIT_REPORT.md`](file:///d:/hackathon/Build%20with%20Bharat/plan/WORKFLOW_AUDIT_REPORT.md).
@@ -329,3 +336,66 @@ This track governs the resolution of the ten non-negotiable Pilot Release Blocke
   - **Dependencies:** `TSK-D6-03`
   - **Scope:** Deploy across 2–3 pilot warehouse sites; collect 100+ annotated real footage events; measure precision, recall, and end-to-end latency.
   - **Acceptance Criteria (Clears BLOCKER-10):** Labeled empirical evaluation achieves Precision ≥ 90.0%, Recall ≥ 90.0%, and p95 latency ≤ 3.5s.
+=======
+- [x] **`TSK-D6-06`**: Fix 500s on `GET /api/v1/incidents` & `GET /api/v1/cameras` (legacy-row resilience) + purge demo DB test debris.
+  - **Dependencies:** `TSK-D6-05`
+  - **Scope:** (1) Make `IncidentResponse.detector_confidence` optional and `CameraResponse.status` tolerant to legacy out-of-enum values so one bad row can no longer 500 the whole collection (fail-safe per AGENTS.md §3). (2) Purge legacy test debris from `services/api/drishtiflow.db` (`cam-test-*`, `cam-stress-*`, `test-cam-01` incidents, duplicate Bay-A cameras / Warehouse workflows, orphan actions/feedback/zones: 4 cameras, 12 duplicate cameras, 38 orphan incidents, 31 orphan actions, 7 orphan feedback, 12 duplicate workflows, 12 orphan zones, 16 orphan workflow versions removed). (3) Add missing autouse cleanup to `test_policy_and_events.py` and `test_e2e_pipeline.py` teardown hardening to stop future DB pollution. (4) Add `services/api/tests/test_legacy_resilience.py` regression tests (2 tests).
+  - **Acceptance Criteria:** After remediation, `pytest` is 37/37 green; all list endpoints return 200; a full repeated pytest run leaves the demo DB clean (cameras=2, incidents=1, workflows=1); live `GET /incidents`, `/cameras`, `/workflows` verified 200.
+  - **Validation Evidence:** Live server re-run after fix: 200 OK on all three list endpoints (UVicorn log verified); DB row counts stable after full test suite rerun.
+  - **Completed Date:** 2026-11-04
+
+---
+
+## Track R1: Fall Detection & Hospital Emergency Dispatch (R1 Supervised Pilot MVP)
+
+### Track R1: Fall Detection & Hospital Emergency Dispatch (Owner: All)
+
+- [x] **`TSK-R1-01`**: Pose Estimation Model Integration (YOLOv8n-Pose).
+  - **Dependencies:** `TSK-D2-05` (Real YOLOv8n Edge Inference)
+  - **Scope:** `services/edge-agent/inference/yolo_pose_detector.py` — YOLOv8n-Pose model extracting body keypoints (nose, shoulders, hips, knees, ankles) from frames. Normalizes keypoints to [0,1]. Computes body orientation angle (vertical vs horizontal) for posture classification. Includes `_is_person_fallen()` heuristic using shoulder-hip aspect ratio.
+  - **Acceptance Criteria:** `YOLOPoseDetector` loads `yolov8n-pose.pt`, returns keypoints with confidence, computes standing/fallen classification. Runs at ≥15 FPS on CPU.
+  - **Validation Evidence:** `services/edge-agent/tests/test_yolo_pose_detector.py` — 7 tests passing (keypoint names, fallen/vertical classification, missing keypoints safe default, normalization, instantiation, defaults, dict structure).
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-R1-02`**: Fall State Machine with 3-5 Second Timer.
+  - **Dependencies:** `TSK-R1-01`
+  - **Scope:** `services/edge-agent/tracking/fall_monitor.py` — `FallStateMachine` with states: `standing` → `fallen_detected` → `emergency_trigger` → `standing`. 3-5 second timer before emergency. Person-track matching via IoU. State persistence across frames.
+  - **Acceptance Criteria:** State transitions verified: standing→fallen→standing (no alert), standing→fallen→emergency (alert at 3-5s), timer boundary (2.9s=no alert, 3.0s=alert).
+  - **Validation Evidence:** `services/edge-agent/tests/test_fall_monitor.py` — 9 tests passing (initial state, fall/recover, emergency trigger, timer boundaries, track removal, active falls, multi-person tracking, event serialization).
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-R1-03`**: Hospital Reception Emergency Dispatch.
+  - **Dependencies:** `TSK-R1-02`, `TSK-D5-02` (Action Queue & Idempotency Engine)
+  - **Scope:** `services/api/app/routers/fall_monitoring.py` — `POST /api/v1/fall-monitor/emergency` endpoint dispatches hospital reception alert with idempotency key. Bypasses standard cooldown. Includes location, timestamp, fallen person evidence.
+  - **Acceptance Criteria:** Emergency dispatch returns 201 with event_id. Hospital reception alert dispatched with message. Test dispatch succeeds.
+  - **Validation Evidence:** Live server tested: `POST /api/v1/fall-monitor/emergency` returns 201 with `event_id`, `triggered_at`, and `"Emergency dispatched to hospital reception"` message.
+  - **Completed Date:** 2026-11-06
+
+- [x] **`TSK-R1-04`**: Fall Monitor UI Tab.
+  - **Dependencies:** `TSK-R1-02`, `TSK-D4-01` (Next.js App Shell)
+  - **Scope:** `apps/web/src/components/incidents/FallMonitor.tsx` — New "Fall Monitor" tab in Command Center showing fall status per camera. Visual indicator: person outline turns red when fallen. Countdown timer (3-5s) visible on screen. Emergency button to manually trigger reception alert. Reads from `/api/v1/fall-monitor` endpoint. Polls every 2s for live updates.
+  - **Acceptance Criteria:** Fall Monitor tab renders; shows per-camera fall status; countdown timer decrements; emergency button triggers dispatch; UI passes lint/build.
+  - **Validation Evidence:** Frontend ESLint clean; Next.js build succeeds; Fall Monitor component integrated into page.tsx with tab navigation.
+  - **Completed Date:** 2026-11-06
+
+- [ ] **`TSK-R1-06`**: Fall Detection End-to-End Test Suite.
+  - **Dependencies:** All R1 tasks
+  - **Scope:** Full pipeline test: video → pose detection → fall state machine → emergency trigger → hospital reception dispatch. Test with simulated fallen person video footage. Verify 3-5s timer accuracy.
+  - **Acceptance Criteria:** E2E test passes; fall detected within 3-5s of person going down; hospital reception alert dispatched; incident persisted; false positives minimized (person bending down briefly = no alert).
+  - **Validation Evidence:** (pending)
+  - **Completed Date:** (pending)
+
+- [x] **`TSK-R1-05`**: Fall Detection API Router & Endpoints.
+  - **Dependencies:** `TSK-R1-02`, `TSK-D1-03` (FastAPI Backend Skeleton)
+  - **Scope:** `services/api/app/routers/fall_monitoring.py` — `GET /api/v1/fall-monitor` (fall status per camera), `POST /api/v1/fall-monitor/events` (ingest fall detection events from edge agent), `POST /api/v1/fall-monitor/emergency` (manual emergency trigger). Registered in `services/api/app/main.py`.
+  - **Acceptance Criteria:** All fall monitoring endpoints return 200/201; emergency trigger creates incident + dispatches hospital alert; fall events persisted in memory.
+  - **Validation Evidence:** Live server tested: `GET /api/v1/fall-monitor` → 200, `POST /api/v1/fall-monitor/events` → 201, `POST /api/v1/fall-monitor/emergency` → 201.
+  - **Completed Date:** 2026-11-06
+
+- [ ] **`TSK-R1-06`**: Fall Detection End-to-End Test Suite.
+  - **Dependencies:** All R1 tasks
+  - **Scope:** Full pipeline test: video → pose detection → fall state machine → emergency trigger → hospital reception dispatch. Test with simulated fallen person video footage. Verify 3-5s timer accuracy.
+  - **Acceptance Criteria:** E2E test passes; fall detected within 3-5s of person going down; hospital reception alert dispatched; incident persisted; false positives minimized (person bending down briefly = no alert).
+  - **Validation Evidence:** (pending)
+  - **Completed Date:** (pending)
+>>>>>>> a93e41167a71311a65572950d6bf4f07502b05ab
