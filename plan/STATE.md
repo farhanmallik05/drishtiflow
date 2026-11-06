@@ -1,8 +1,10 @@
 # DrishtiFlow Project State
-**Last Updated:** 2026-11-06T03:00:00+05:30  
+**Last Updated:** 2026-11-06T14:00:00+05:30  
 **Active Milestone:** Milestone R1 — Supervised Pilot MVP (Fall Detection & Hospital Emergency Dispatch — USP)  
 **Next Milestone:** Milestone R2 — Multi-Site Operations  
-**Overall System Health:** 🟢 GREEN (All 30 R0 tasks complete, 65/65 tests passing including R1 fall detection tests, ESLint 0 warnings/errors, Vite + React LandingPage frontend, all bugs fixed) | 🟡 R1 IN PROGRESS (Fall Detection & Hospital Emergency Dispatch — 4/6 tasks complete)
+**Overall System Health:** 🟢 GREEN (All 30 R0 tasks complete, 65/65 tests passing including R1 fall detection tests, ESLint 0 warnings/errors, Vite + React LandingPage frontend, upload → YOLOv8n → results flow verified end-to-end) | 🟡 R1 IN PROGRESS (Fall Detection & Hospital Emergency Dispatch — 4/6 tasks complete)
+
+**Latest integration verification (2026-11-06):** `POST /api/v1/shoplifting/upload-video` → `POST /api/v1/shoplifting/process-video` on `Shoplifting.mp4` returns 200 with 3 typed person records / 2 suspected thefts in ~56s; evidence photos serve as `image/jpeg`; `GET /api/v1/shoplifting/videos/{file}` supports Range requests (206); CORS preflight from `http://localhost:5176` returns 200; `npm run build --workspace=apps/web` exits 0.
 
 **Active Task:** `TSK-R1-06` (IN_PROGRESS) — Fall Detection End-to-End Test Suite. Fall detection USP complete: pose detector, fall state machine, emergency dispatch, API router, Fall Monitor UI all implemented and verified.
 

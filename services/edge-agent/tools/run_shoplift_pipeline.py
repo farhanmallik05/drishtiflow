@@ -134,8 +134,10 @@ def main() -> int:
                 continue
             processed += 1
 
-            secs = frame_idx / fps
-            summaries = monitor.process_frame(frame, frame_idx=frame_idx)
+            secs = frame_idx / fps if fps else 0.0
+            summaries = monitor.process_frame(
+                frame, frame_idx=frame_idx, timestamp_seconds=secs
+            )
 
             if frame_idx % 300 == 0:
                 active = len(monitor.get_active_tracks())

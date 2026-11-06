@@ -156,7 +156,7 @@ flowchart TD
 ### 2.7 Shoplifting Detection & Evidence Logging (Edge Agent)
 - **Module:** `services/edge-agent/tracking/shoplift_monitor.py` (`ShopliftMonitor`).
 - **Function:** Composes the existing YOLOv8n person detector (§2.3) and zone point-in-polygon filter (§2.3) to track persons across frames on a single camera.
-- **Entry/Exit logging:** `entry_time` is stamped (UTC ISO-8601) when a person first enters the shop zone; `exit_time` is stamped when they leave the zone or disappear for `max_disappear_frames` frames. `duration_seconds` is computed from the two timestamps.
+- **Entry/Exit logging:** `entry_time` is stamped (UTC ISO-8601) when a person first enters the shop zone; `exit_time` is stamped when they leave the zone or disappear for `max_disappear_frames` frames. `process_frame(..., timestamp_seconds=<frame_idx/fps>)` lets the pipeline record video-relative dwell time, so `duration_seconds` reflects the clip timeline rather than wall-clock processing time (a 22s clip can never report 40s of dwell time).
 - **Theft heuristic:** A person who dwells in the shelf/items zone and then exits the shop zone is flagged `theft_suspected=True` (shelf interaction + exit). Interaction without exit does not flag theft.
 - **Evidence photo:** Exactly ONE person bounding-box crop (JPEG) is saved per suspected-theft incident under `services/edge-agent/assets/evidence/`.
 - **Pandas log:** Every finalized person becomes one row appended to `services/edge-agent/assets/shop_theft_log.csv` (also exposed via `to_dataframe()`): track_id, camera_id, entry_time, exit_time, duration_seconds, shelf_interaction, theft_suspected, detector_confidence, photo_path, logged_at.
@@ -312,11 +312,18 @@ create index idx_cameras_site on cameras (site_id);
 | `GET` | `/api/v1/cameras/{id}/stream` | Live MJPEG stream (`stream_url`, `annotate`, `stride`) |
 | `GET` | `/api/v1/cameras/{id}/snapshot` | Single annotated JPEG frame for evidence |
 | `POST` | `/api/v1/events/candidates` | Ingest candidate event from edge detector |
+| `POST` | `/api/v1/shoplifting/upload-video` | Upload a shop video (multipart `file`), returns `path`, `url`, `media_type`, `size_bytes` |
+| `POST` | `/api/v1/shoplifting/process-video` | Run YOLOv8n shoplifting pipeline; body `{video_path, camera_id?}`, returns typed `records[]`, `records_found`, `thefts_suspected`, `video_url`, `elapsed_seconds` |
+| `GET` | `/api/v1/shoplifting/log` | Typed shoplifting log (`camera_id`/`limit` filters), includes `photo_url` per record |
+| `GET` | `/api/v1/shoplifting/videos/{filename}` | Serve an uploaded video for playback (MIME inferred, Range supported) |
+| `GET` | `/api/v1/shoplifting/evidence/{filename}` | Serve a person-crop evidence photo |
 | `POST` | `/api/v1/incidents/{id}/verify` | Trigger contextual VLM verification |
 | `GET` | `/api/v1/incidents` | Query incident history with filtering & pagination |
 | `POST` | `/api/v1/incidents/{id}/acknowledge` | Mark an incident as acknowledged by operator |
 | `POST` | `/api/v1/incidents/{id}/feedback` | Submit operator feedback (True/False Positive) |
 | `POST` | `/api/v1/actions/test` | Dispatch a safe test notification to verified destination |
+
+**Shoplifting contract note (2026-11-06, TSK-D4-08):** the upload → process → results flow is aligned with `apps/web/src/components/camera/CameraPreview.tsx` and `apps/web/src/components/dashboard/ShopliftingLogView.tsx`. CSV rows are normalized to real `bool`/`float` JSON values; absolute Windows `photo_path` values are supplemented with a browser-safe `photo_url`; CORS allows Vite dev ports 5173–5176 and 3000.
 
 **Response contract note (2026-11-04, TSK-D6-06):** read-model responses are intentionally tolerant to legacy/out-of-range stored values. `IncidentResponse.detector_confidence` is `Optional[float]` (nullable DB column per §3 schema) and `CameraResponse.status` accepts any string — a single legacy row (e.g. `status='active'`, `detector_confidence=NULL`) must degrade per-row, never 500 the collection. Regression coverage: `services/api/tests/test_legacy_resilience.py`.
 

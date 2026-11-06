@@ -20,6 +20,7 @@ import { soundManager } from './utils/soundEffects';
 import { LandingPage } from './components/landing/LandingPage';
 import { OverviewView } from './components/dashboard/OverviewView';
 import { LiveCamerasView } from './components/dashboard/LiveCamerasView';
+import { CameraPreview } from './components/camera/CameraPreview';
 import { AiDetectionView } from './components/dashboard/AiDetectionView';
 import { EmergencyCenterView } from './components/dashboard/EmergencyCenterView';
 import { VoiceAssistantView } from './components/dashboard/VoiceAssistantView';
@@ -28,6 +29,7 @@ import { NotificationsView } from './components/dashboard/NotificationsView';
 import { AnalyticsView } from './components/dashboard/AnalyticsView';
 import { CameraManagementView } from './components/dashboard/CameraManagementView';
 import { SettingsView } from './components/dashboard/SettingsView';
+import { ShopliftingLogView } from './components/dashboard/ShopliftingLogView';
 
 // Icons
 import {
@@ -52,12 +54,14 @@ import {
   ArrowLeft,
   ShieldCheck,
   Flame,
-  AlertTriangle
+  AlertTriangle,
+  Upload,
+  FileText
 } from 'lucide-react';
 
 export function App() {
   // App Navigation: 'landing' or 'dashboard'
-  const [currentPage, setCurrentPage] = useState<'landing' | 'dashboard'>('landing');
+  const [currentPage, setCurrentPage] = useState<'landing' | 'dashboard'>('dashboard');
 
   // Dashboard Tab Navigation:
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -82,6 +86,8 @@ export function App() {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'cameras', label: 'Live Cameras', icon: CameraIcon },
+    { id: 'monitoring', label: 'Video Upload & Detection', icon: Upload },
+    { id: 'shoplifting', label: 'Shoplifting Log', icon: FileText },
     { id: 'detection', label: 'AI Detection', icon: Cpu },
     { 
       id: 'emergency', 
@@ -389,6 +395,16 @@ export function App() {
               onCaptureSnapshot={handleCaptureSnapshot}
             />
           )}
+
+          {activeTab === 'monitoring' && (
+            <CameraPreview
+              onCandidateTriggered={(data) => console.log('Candidate triggered:', data)}
+              activeWorkflowId={null}
+              onOpenLog={() => setActiveTab('shoplifting')}
+            />
+          )}
+
+          {activeTab === 'shoplifting' && <ShopliftingLogView />}
 
           {activeTab === 'detection' && (
             <AiDetectionView

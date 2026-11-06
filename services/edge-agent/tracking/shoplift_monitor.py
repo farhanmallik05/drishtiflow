@@ -54,6 +54,10 @@ class PersonTrack:
     last_seen_frame: int = 0
     last_bbox: Optional[BBox] = None
     confidence: float = 0.0
+    # Video-relative timestamps (seconds) so durations reflect the clip, not
+    # the wall-clock time taken to process it.
+    entry_seconds: Optional[float] = None
+    exit_seconds: Optional[float] = None
     # Internal bookkeeping (not part of the exported record).
     seen_this_frame: bool = field(default=False, compare=False)
     disappear_count: int = field(default=0, compare=False)
@@ -121,6 +125,7 @@ class ShopliftMonitor:
         self.finished_records: List[TheftRecord] = []
         self._next_track_id = 1
         self._frame_idx = 0
+        self._last_seconds: Optional[float] = None
 
         # Lazy-loaded on first frame so module import stays cheap.
         self._detector: Optional[YOLOEdgeDetector] = None
@@ -256,7 +261,12 @@ class ShopliftMonitor:
     # ------------------------------------------------------------------ #
     # Core per-frame processing
     # ------------------------------------------------------------------ #
-    def process_frame(self, frame: np.ndarray, frame_idx: Optional[int] = None) -> List[Dict]:
+    def process_frame(
+        self,
+        frame: np.ndarray,
+        frame_idx: Optional[int] = None,
+        timestamp_seconds: Optional[float] = None,
+    ) -> List[Dict]:
         """
         Run one frame through the shoplifting monitor.
 
@@ -264,12 +274,18 @@ class ShopliftMonitor:
         suspected theft, captures one evidence photo per incident, and
         finalizes records for tracks that have exited or disappeared.
 
+        ``timestamp_seconds`` is the video-relative position of this frame.
+        When supplied, ``duration_seconds`` in the exported log reflects the
+        clip timeline rather than the wall-clock processing time.
+
         Returns a list of active-track summaries for the current frame.
         """
         if frame_idx is not None:
             self._frame_idx = frame_idx
         else:
             self._frame_idx += 1
+        if timestamp_seconds is not None:
+            self._last_seconds = timestamp_seconds
 
         detections = self.detector.detect(frame)
         person_dets = [d for d in detections if d.get("class") == "person"]
@@ -294,6 +310,7 @@ class ShopliftMonitor:
             if not track.in_shop and is_point_in_polygon(center, self.shop_zone):
                 track.in_shop = True
                 track.entry_time = datetime.now(timezone.utc)
+                track.entry_seconds = timestamp_seconds
                 print(
                     f"[{self._frame_idx}] ENTRY track={track_id} "
                     f"center=({center[0]:.2f},{center[1]:.2f}) "
@@ -320,6 +337,7 @@ class ShopliftMonitor:
                 if not is_point_in_polygon(center, self.shop_zone):
                     track.in_shop = False
                     track.exit_time = datetime.now(timezone.utc)
+                    track.exit_seconds = timestamp_seconds
                     to_finalize.append(track_id)
                     print(
                         f"[{self._frame_idx}] EXIT track={track_id} "
@@ -377,7 +395,13 @@ class ShopliftMonitor:
             photo_path = self._capture_photo(frame, track.last_bbox, track_id)
             track.photo_path = photo_path
 
-        duration = (exit_time - entry_time).total_seconds()
+        # Prefer video-relative seconds when the caller supplied frame timestamps,
+        # so a 22s clip never reports a 40s "dwell time".
+        exit_seconds = track.exit_seconds if track.exit_seconds is not None else self._last_seconds
+        if track.entry_seconds is not None and exit_seconds is not None:
+            duration = max(0.0, exit_seconds - track.entry_seconds)
+        else:
+            duration = (exit_time - entry_time).total_seconds()
 
         record = TheftRecord(
             track_id=track_id,

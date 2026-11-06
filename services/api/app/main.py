@@ -16,10 +16,17 @@ app = FastAPI(
 )
 
 # CORS Middleware allowing web frontend integration
+# Frontend runs on Vite ports 5173-5176 (auto-incremented if port in use)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_ORIGIN], # Restrict to configured frontend origin
-    allow_credentials=True,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:3000",
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -42,6 +49,12 @@ def root():
         "documentation": "/docs",
         "health": "/api/v1/health"
     }
+
+@app.get("/health")
+def health_root():
+    """Root-level health alias for /api/v1/health."""
+    from .routers.health import health_check
+    return health_check()
 
 if __name__ == "__main__":
     import uvicorn

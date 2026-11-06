@@ -221,6 +221,22 @@
     - Interactive 3D scene, voice commands, and multi-camera views tested locally.
   - **Completed Date:** 2026-11-06
   - **Git/File Ref:** `LandingPage/`
+
+- [x] **`TSK-D4-08`**: Align Shop-Video Backend with the Updated Vite Frontend (upload → results).
+  - **Dependencies:** `TSK-D4-06`, `TSK-D2-06`
+  - **Owner:** Farhan (implemented by agent on user request)
+  - **Scope:** (1) `POST /api/v1/shoplifting/upload-video` now returns `url`, `media_type`, `size_bytes` alongside `path`; (2) `POST /api/v1/shoplifting/process-video` returns typed `records[]` (booleans/floats), `camera_id`, `video_url`, and `elapsed_seconds`; (3) `GET /api/v1/shoplifting/log` normalizes CSV strings to typed JSON and adds `photo_url`; (4) `GET /api/v1/shoplifting/videos/{filename}` infers MIME type and supports Range requests; (5) hardened path resolution with `.resolve()`; (6) added `ShopliftingLogView.tsx` + "Shoplifting Log" nav tab and inline per-person results in `CameraPreview.tsx`; (7) fixed `duration_seconds` to use video-relative time.
+  - **Acceptance Criteria:** Uploading a shop video from the UI shows playback, running detection returns per-person records with theft badges, and the Shoplifting Log tab displays those records with evidence-photo links.
+  - **Validation Evidence:**
+    - `POST /upload-video` → 200 with `path`, `url`, `media_type`, `size_bytes`.
+    - `POST /process-video` on `Shoplifting.mp4` → 200 in ~56s, `records_found=3`, `thefts_suspected=2`, typed `records[]`, durations 17.7s / 21.3s / 2.6s (all ≤ 22s clip).
+    - `GET /log` → `count=3`, `thefts_suspected=2`, `theft_suspected` is a JSON boolean, `photo_url` returns 200 `image/jpeg`.
+    - `GET /videos/Shoplifting.mp4` with `Range: bytes=0-99` → 206 Partial Content.
+    - CORS preflight from `http://localhost:5176` → 200 with `access-control-allow-origin: http://localhost:5176`.
+    - `pytest services/edge-agent/tests/test_shoplift_monitor.py -q` → 7/7 passed.
+    - `npm run build --workspace=apps/web` → exit 0 (TypeScript + Vite).
+  - **Completed Date:** 2026-11-06
+  - **Git/File Ref:** `services/api/app/routers/shoplifting.py`, `services/edge-agent/tracking/shoplift_monitor.py`, `services/edge-agent/tools/run_shoplift_pipeline.py`, `apps/web/src/components/dashboard/ShopliftingLogView.tsx`, `apps/web/src/components/camera/CameraPreview.tsx`, `apps/web/src/App.tsx`
 ---
 
 ### Track 5: Policy Engine & Action Worker (Owner: Kaushendra)

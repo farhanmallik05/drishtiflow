@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — 2026-11-06 (Frontend ↔ Backend alignment for upload → results)
+
+- **Shoplifting Log results view (`apps/web/src/components/dashboard/ShopliftingLogView.tsx`)**:
+  - New "Shoplifting Log" tab in `App.tsx` (after "Video Upload & Detection").
+  - Fetches `GET /api/v1/shoplifting/log`, shows persons tracked, suspected thefts, theft rate, shelf interactions, and a per-person table (entry/exit, duration, confidence, evidence-photo link).
+  - Empty/error states guide the operator to upload a video or start the API.
+- **Inline detection results in `CameraPreview.tsx`**:
+  - After `process-video` completes, the panel now renders the first five per-person records (theft badge + duration + confidence) and a "View full log →" action wired through a new optional `onOpenLog` prop.
+- **Enriched upload response**: `POST /api/v1/shoplifting/upload-video` now also returns `url`, `media_type`, and `size_bytes`; the frontend uses `url` for playback instead of parsing Windows paths.
+- **Enriched process response**: `POST /api/v1/shoplifting/process-video` now returns typed `records[]`, `camera_id`, `video_url`, and `elapsed_seconds` alongside `records_found` / `thefts_suspected`.
+- **Typed log records**: `GET /api/v1/shoplifting/log` now converts CSV strings to real booleans/floats and adds `photo_url` so the UI can render evidence photos directly (also exposes `thefts_suspected` and an optional `camera_id` filter).
+
+### Fixed — 2026-11-06
+
+- **CORS blocked the Vite frontend**: `CORSMiddleware` only allowed `settings.FRONTEND_ORIGIN` (default `http://localhost:3000`), so browser requests from Vite ports 5173–5176 failed with "Disallowed CORS origin" / "unable to fetch". Allowed ports 5173–5176 + 3000 and disabled credentialed wildcard handling in `services/api/app/main.py`.
+- **Misleading `duration_seconds`**: the shoplifting monitor used wall-clock processing time (≈40s) instead of video time for a 22s clip. `process_frame()` now accepts `timestamp_seconds`, and the pipeline passes `frame_idx / fps`; durations now stay within the clip (17.7s / 21.3s / 2.6s on `Shoplifting.mp4`). Existing monitor tests still pass (7/7).
+- **Video playback MIME**: `GET /api/v1/shoplifting/videos/{filename}` now infers the media type from the file suffix instead of hardcoding `video/mp4`, and path resolution is hardened with `.resolve()`.
+
 ### Added
 - **Frontend Migration — LandingPage from GitHub (`apps/web/`)**:
   - Replaced Next.js frontend with Vite + React + Tailwind CSS LandingPage from `farhanmallik05/drishtiflow` GitHub repo.
@@ -19,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Frontend migration**: Replaced Next.js apps/web with Vite + React LandingPage from GitHub repo (farhanmallik05/drishtiflow)
 - All API endpoints connect to backend at http://localhost:8000
+- **Backend health 404**: Added root-level `GET /health` alias in `services/api/app/main.py` so `/health` returns 200 OK.
+- **React version mismatch**: Installed matching `react@18.3.1` + `react-dom@18.3.1` in `apps/web/` (was mixing 18.3.1 root with 19.3.1 local).
+- **Missing ZoneCanvas**: Created `apps/web/src/components/camera/ZoneCanvas.tsx` with `Point`, `isPointInPolygon`, and `ZoneCanvas` component (imported by friend's `CameraPreview.tsx`).
+- **Vite env fix**: Changed `process.env.NEXT_PUBLIC_API_URL` to `import.meta.env.VITE_API_URL` in `CameraPreview.tsx` (Vite doesn't define `process`).
+- **Video upload tab**: Added "Video Upload & Detection" tab in `App.tsx` connecting friend's `CameraPreview.tsx` to the dashboard.
+- Frontend runs on Vite port 5173+ (not port 3000/Next.js as INSTALL.md incorrectly states).
 
 ---
   - `ShopliftMonitor` composes the existing YOLOv8n person detector + zone point-in-polygon filter to track persons across frames.
